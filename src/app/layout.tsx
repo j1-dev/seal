@@ -26,10 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} dark:bg-neutral-950 bg-neutral-100 h-screen w-full relative`}>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider defaultTheme="system" attribute="class" enableSystem>
-          {children}
+          <div className="relative flex min-h-svh flex-col bg-background">
+            {children}
+          </div>
           <div className="z-50 absolute bottom-5 right-5">
             <ThemeSwitcher />
           </div>

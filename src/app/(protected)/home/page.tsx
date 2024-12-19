@@ -13,17 +13,14 @@ export default function Home() {
       console.log(user);
     });
   });
+  
   return (
-    <div className="h-screen w-full flex flex-col justify-center items-center">
-      <div
-        className=" rounded-2xl dark:bg-neutral-950 bg-neutral-100
-                     text-8xl font-black transition-all 
-                     cursor-pointer group shadow hover:shadow-xl"
-        onClick={() => {
-          signOutAction();
-        }}>
-        Hello
-      </div>
+    <div
+      className="h-screen w-full flex flex-col justify-center items-center text-8xl font-black"
+      onClick={() => {
+        signOutAction();
+      }}>
+      Hello
     </div>
   );
 }
