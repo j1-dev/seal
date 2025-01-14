@@ -15,7 +15,7 @@ type Post = {
   user_id: UUID;
   content: string;
   media?: string | null;
-  created_at: string;
+  created_at?: string;
 };
 
 type Reaction = {

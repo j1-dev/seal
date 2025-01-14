@@ -11,7 +11,7 @@ export default function AuthLayout({
         <aside className="w-40">
           <Navbar />
         </aside>
-        <div className="flex-1 p-4">{children}</div>
+        <div className="flex-1 py-4">{children}</div>
         <aside className="w-40 p-4 border-l">
           <input
             type="text"

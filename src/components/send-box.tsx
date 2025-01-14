@@ -16,25 +16,31 @@ export function Sendbox() {
     const post: Post = {
       content,
       user_id,
-      created_at: new Date().toISOString(),
+      // created_at: new Date().toISOString(),
     };
     return post;
   };
 
-  const handleSend = () => async () => {
-    const post = constructPost(content);
-    setContent('');
-    await createPost(await post);
+  const handleSend = async () => {
+    if (!content.trim()) return; // Prevent sending empty posts
+
+    try {
+      const post = await constructPost(content);
+      await createPost(post);
+      setContent(''); // Clear the content after the post is successfully created
+    } catch (error) {
+      console.error('Failed to send post:', error);
+    }
   };
 
   return (
-    <div className="grid w-full gap-2">
+    <div className="grid w-full gap-4 px-4">
       <Textarea
         placeholder="Type your message here."
-        content={content}
+        value={content}
         onChange={(e) => setContent(e.target.value)}
       />
-      <Button onClick={handleSend()}>Send message</Button>
+      <Button onClick={handleSend}>Send message</Button>
     </div>
   );
 }
