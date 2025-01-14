@@ -1,17 +1,17 @@
 type UUID = string; // Simplified for brevity
 
 type User = {
-  id: UUID;
+  id?: UUID | null;
   username: string;
   email: string;
-  password: string;
+  // password: string;
   profile_picture?: string | null;
   bio?: string | null;
   created_at: string;
 };
 
 type Post = {
-  id: UUID;
+  id?: UUID | null;
   user_id: UUID;
   content: string;
   media?: string | null;
@@ -19,7 +19,7 @@ type Post = {
 };
 
 type Reaction = {
-  id: UUID;
+  id?: UUID | null;
   post_id: UUID;
   user_id: UUID;
   type: 'heart' | 'repost';
@@ -27,7 +27,7 @@ type Reaction = {
 };
 
 type Comment = {
-  id: UUID;
+  id?: UUID | null;
   post_id: UUID;
   user_id: UUID;
   content: string;
@@ -36,7 +36,7 @@ type Comment = {
 };
 
 type CommentReaction = {
-  id: UUID;
+  id?: UUID | null;
   comment_id: UUID;
   user_id: UUID;
   type: 'heart';
@@ -44,7 +44,7 @@ type CommentReaction = {
 };
 
 type Friendship = {
-  id: UUID;
+  id?: UUID | null;
   user_id_1: UUID;
   user_id_2: UUID;
   status: 'pending' | 'accepted';
@@ -52,7 +52,7 @@ type Friendship = {
 };
 
 type Message = {
-  id: UUID;
+  id?: UUID | null;
   sender_id: UUID;
   receiver_id: UUID;
   content: string;
@@ -60,21 +60,21 @@ type Message = {
 };
 
 type ChatRoom = {
-  id: UUID;
+  id?: UUID | null;
   name?: string | null;
   created_by: UUID;
   created_at: string;
 };
 
 type ChatRoomMember = {
-  id: UUID;
+  id?: UUID | null;
   chatroom_id: UUID;
   user_id: UUID;
   created_at: string;
 };
 
 type ChatRoomMessage = {
-  id: UUID;
+  id?: UUID | null;
   chatroom_id: UUID;
   sender_id: UUID;
   content: string;
@@ -82,7 +82,7 @@ type ChatRoomMessage = {
 };
 
 type Notification = {
-  id: UUID;
+  id?: UUID | null;
   user_id: UUID;
   type: 'friend_request' | 'message' | 'reaction' | 'comment';
   content: string;
@@ -256,7 +256,6 @@ export type Database = {
     };
   };
 };
-
 
 export type {
   User,

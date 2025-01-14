@@ -10,7 +10,7 @@ export default function Home() {
         className="p-0.5 rounded-2xl absolute top-1/2 right-1/2 translate-x-1/2 -translate-y-1/2 bg-gradient-to-br 
                  from-neutral-200 via-blue-200 to-pink-200 animated-background"
         onClick={() => {
-          router.push('/log-in');
+          router.push('/login');
         }}>
         <div
           className="h-96 w-96 rounded-2xl dark:bg-neutral-950 bg-neutral-100

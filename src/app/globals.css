@@ -155,7 +155,7 @@ body {
   }
 
   .chunk-container::after {
-    content: "";
+    content: '';
     @apply absolute -inset-4 shadow-xl rounded-xl border;
   }
 
@@ -174,7 +174,7 @@ body {
   }
 
   .container-wrapper {
-    @apply min-[1800px]:max-w-[1536px] min-[1800px]:border-x border-border/30 dark:border-border mx-auto w-full;
+    @apply max-w-[840px] min-[1800px]:border-x border-border/30 dark:border-border mx-auto w-full;
   }
 
   .container {

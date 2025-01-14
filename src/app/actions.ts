@@ -4,36 +4,48 @@ import { encodedRedirect } from '@/utils/utils';
 import { createClient } from '@/utils/supabase/server';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { User } from '@/utils/types';
+import { createUser } from '@/utils/services';
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get('email')?.toString();
   const password = formData.get('password')?.toString();
   const supabase = await createClient();
-  const origin = (await headers()).get('origin');
+  // const origin = (await headers()).get('origin');
 
   if (!email || !password) {
     return encodedRedirect(
       'error',
-      '/sign-up',
+      '/signup',
       'Email and password are required'
     );
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      emailRedirectTo: `${origin}/api/v1/auth/callback`,
-    },
+    // options: {
+    //   emailRedirectTo: `${origin}/api/v1/auth/callback`,
+    // },
   });
+
+  const newUser: User = {
+    id: data?.user?.id || '',
+    email: data?.user?.email || '',
+    username:
+      data?.user?.email?.slice(0, data?.user?.email?.indexOf('@')) || '',
+    created_at: new Date().toISOString(),
+  };
+
+  createUser(newUser);
 
   if (error) {
     console.error(error.code + ' ' + error.message);
-    return encodedRedirect('error', '/sign-up', error.message);
+    return encodedRedirect('error', '/signup', error.message);
   } else {
     return encodedRedirect(
       'success',
-      '/sign-up',
+      '/signup',
       'Thanks for signing up! Please check your email for a verification link.'
     );
   }
@@ -50,7 +62,7 @@ export const signInAction = async (formData: FormData) => {
   });
 
   if (error) {
-    return encodedRedirect('error', '/log-in', error.message);
+    return encodedRedirect('error', '/login', error.message);
   }
 
   return redirect('/home');
@@ -130,5 +142,5 @@ export const resetPasswordAction = async (formData: FormData) => {
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  return redirect('/log-in');
+  return redirect('/login');
 };

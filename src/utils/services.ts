@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '@/utils/types';
+import { Database, Post, User } from '@/utils/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -7,11 +7,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // --- User Services ---
-export const createUser = async (
-  user: Omit<Database['public']['Tables']['Users']['Row'], 'id' | 'created_at'>
-) => {
+export const createUser = async (user: User) => {
   const { data, error } = await supabase
-    .from('Users')
+    .from('users')
     .insert(user)
     .select('*')
     .single();
@@ -21,7 +19,7 @@ export const createUser = async (
 
 export const getUserById = async (id: string) => {
   const { data, error } = await supabase
-    .from('Users')
+    .from('users')
     .select('*')
     .eq('id', id)
     .single();
@@ -34,7 +32,7 @@ export const updateUser = async (
   updates: Partial<Database['public']['Tables']['Users']['Row']>
 ) => {
   const { data, error } = await supabase
-    .from('Users')
+    .from('users')
     .update(updates)
     .eq('id', id)
     .select('*')
@@ -44,16 +42,14 @@ export const updateUser = async (
 };
 
 export const deleteUser = async (id: string) => {
-  const { error } = await supabase.from('Users').delete().eq('id', id);
+  const { error } = await supabase.from('users').delete().eq('id', id);
   if (error) throw error;
 };
 
 // --- Post Services ---
-export const createPost = async (
-  post: Omit<Database['public']['Tables']['Posts']['Row'], 'id' | 'created_at'>
-) => {
+export const createPost = async (post: Post) => {
   const { data, error } = await supabase
-    .from('Posts')
+    .from('posts')
     .insert(post)
     .select('*')
     .single();
@@ -61,9 +57,18 @@ export const createPost = async (
   return data;
 };
 
+export const getAllPosts = async () => {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+};
+
 export const getPostsByUserId = async (userId: string) => {
   const { data, error } = await supabase
-    .from('Posts')
+    .from('posts')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
@@ -72,7 +77,7 @@ export const getPostsByUserId = async (userId: string) => {
 };
 
 export const deletePost = async (id: string) => {
-  const { error } = await supabase.from('Posts').delete().eq('id', id);
+  const { error } = await supabase.from('posts').delete().eq('id', id);
   if (error) throw error;
 };
 
@@ -84,7 +89,7 @@ export const createReaction = async (
   >
 ) => {
   const { data, error } = await supabase
-    .from('Reactions')
+    .from('reactions')
     .insert(reaction)
     .select('*')
     .single();
@@ -93,7 +98,7 @@ export const createReaction = async (
 };
 
 export const deleteReaction = async (id: string) => {
-  const { error } = await supabase.from('Reactions').delete().eq('id', id);
+  const { error } = await supabase.from('reactions').delete().eq('id', id);
   if (error) throw error;
 };
 
@@ -105,7 +110,7 @@ export const createComment = async (
   >
 ) => {
   const { data, error } = await supabase
-    .from('Comments')
+    .from('comments')
     .insert(comment)
     .select('*')
     .single();
@@ -115,7 +120,7 @@ export const createComment = async (
 
 export const getCommentsByPostId = async (postId: string) => {
   const { data, error } = await supabase
-    .from('Comments')
+    .from('comments')
     .select('*')
     .eq('post_id', postId)
     .order('created_at', { ascending: false });
@@ -124,7 +129,7 @@ export const getCommentsByPostId = async (postId: string) => {
 };
 
 export const deleteComment = async (id: string) => {
-  const { error } = await supabase.from('Comments').delete().eq('id', id);
+  const { error } = await supabase.from('comments').delete().eq('id', id);
   if (error) throw error;
 };
 
@@ -136,7 +141,7 @@ export const createFriendship = async (
   >
 ) => {
   const { data, error } = await supabase
-    .from('Friendships')
+    .from('friendships')
     .insert(friendship)
     .select('*')
     .single();
@@ -149,7 +154,7 @@ export const updateFriendshipStatus = async (
   status: 'pending' | 'accepted'
 ) => {
   const { data, error } = await supabase
-    .from('Friendships')
+    .from('friendships')
     .update({ status })
     .eq('id', id)
     .select('*')
@@ -159,7 +164,7 @@ export const updateFriendshipStatus = async (
 };
 
 export const deleteFriendship = async (id: string) => {
-  const { error } = await supabase.from('Friendships').delete().eq('id', id);
+  const { error } = await supabase.from('friendships').delete().eq('id', id);
   if (error) throw error;
 };
 
@@ -171,7 +176,7 @@ export const sendMessage = async (
   >
 ) => {
   const { data, error } = await supabase
-    .from('Messages')
+    .from('messages')
     .insert(message)
     .select('*')
     .single();
@@ -184,7 +189,7 @@ export const getMessagesBetweenUsers = async (
   userId2: string
 ) => {
   const { data, error } = await supabase
-    .from('Messages')
+    .from('messages')
     .select('*')
     .or(`sender_id.eq.${userId1},receiver_id.eq.${userId1}`)
     .or(`sender_id.eq.${userId2},receiver_id.eq.${userId2}`)
@@ -201,7 +206,7 @@ export const createNotification = async (
   >
 ) => {
   const { data, error } = await supabase
-    .from('Notifications')
+    .from('notifications')
     .insert(notification)
     .select('*')
     .single();
@@ -211,7 +216,7 @@ export const createNotification = async (
 
 export const getUserNotifications = async (userId: string) => {
   const { data, error } = await supabase
-    .from('Notifications')
+    .from('notifications')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
@@ -221,7 +226,7 @@ export const getUserNotifications = async (userId: string) => {
 
 export const markNotificationAsRead = async (id: string) => {
   const { data, error } = await supabase
-    .from('Notifications')
+    .from('notifications')
     .update({ is_read: true })
     .eq('id', id)
     .select('*')
