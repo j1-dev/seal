@@ -1,7 +1,7 @@
 'use client';
 
-import { getPostById, getUserById } from '@/utils/services';
-import { Post, User } from '@/utils/types';
+import { createComment, getPostById, getUserById } from '@/utils/services';
+import { Comment, Post, User } from '@/utils/types';
 import { useParams } from 'next/navigation';
 import { Dot } from 'lucide-react';
 import { relativeTime } from '@/utils/utils';
@@ -11,6 +11,10 @@ import Image from 'next/image';
 import { FaRegComment, FaRegHeart } from 'react-icons/fa6';
 import { LuShare } from 'react-icons/lu';
 import { IoArrowBack } from 'react-icons/io5';
+import { Textarea } from '@/components/ui/textarea';
+import { createClient } from '@/utils/supabase/client';
+import { Button } from '@/components/ui/button';
+import CommentFeed from '@/components/comment-feed';
 
 export default function PostPage() {
   const { postId } = useParams();
@@ -19,6 +23,11 @@ export default function PostPage() {
   const [time, setTime] = useState<string>(
     relativeTime(post?.created_at || '')
   );
+  const [content, setContent] = useState<string>('');
+  const [disabled, setDisabled] = useState<boolean>(false);
+
+  const supabase = createClient();
+  const currentUser = supabase.auth.getUser();
 
   useEffect(() => {
     const getPost = async () => {
@@ -39,8 +48,33 @@ export default function PostPage() {
     }
   }, [post]);
 
+  const constructComment = async (content: string): Promise<Comment> => {
+    const user_id = (await currentUser).data.user?.id || '';
+    const comment: Comment = {
+      content,
+      user_id,
+      post_id: post?.id || '',
+      // created_at: new Date().toISOString(),
+    };
+    return comment;
+  };
+
+  const handleSendComment = async () => {
+    setDisabled(true);
+    if (!content.trim()) return; // Prevent sending empty comments
+
+    try {
+      const comment = await constructComment(content);
+      await createComment(comment);
+      setContent(''); // Clear the content after the comment is successfully created
+    } catch (error) {
+      console.error('Failed to send comment:', error);
+    }
+    setDisabled(false);
+  };
+
   return (
-    <div className="border-b border-border">
+    <div>
       <div className="relative h-12">
         <IoArrowBack
           onClick={() => history.back()}
@@ -56,7 +90,7 @@ export default function PostPage() {
         <Image
           src={
             user?.profile_picture ||
-            'https://npnifamrslmcrjtysuhs.supabase.co/storage/v1/object/sign/profile-pics/default/default_pp.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJwcm9maWxlLXBpY3MvZGVmYXVsdC9kZWZhdWx0X3BwLmpwZyIsImlhdCI6MTczNjg4MjE1OSwiZXhwIjozMTU1MzA1MzQ2MTU5fQ.XsqHIGH1gc1Ct2uakTKnnNg7W6HHgm4tu0AKRyu3zXw&t=2025-01-14T19%3A15%3A59.231Z'
+            process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
           }
           alt="profile picture"
           width={48}
@@ -82,6 +116,22 @@ export default function PostPage() {
         <FaRegHeart />0
         <LuShare />
       </div>
+      <Separator />
+      <div className="grid w-full gap-4 px-4 border-b border-border pb-4">
+        <Textarea
+          className="border-none shadow-none resize-none outline-none focus:outline-none focus:border-none"
+          placeholder="Comment"
+          value={content}
+          onChange={(e) => {
+            setContent(e.target.value);
+          }}
+        />
+        <Button disabled={disabled} onClick={handleSendComment}>
+          {!disabled ? 'Send Comment' : 'Sending...'}
+        </Button>
+      </div>
+      <Separator />
+      <CommentFeed id={post?.id || ''} />
     </div>
   );
 }

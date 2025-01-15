@@ -36,14 +36,9 @@ export default function PostCard({ post }: { post: Post }) {
   }, [post.user_id]);
 
   return (
-    <Link
-      href={`p/${post?.id}`}
-      passHref
-      scroll={false}
-      shallow={true}
-      prefetch={true}>
+    <div>
       <div key={post.id} className="border-b border-border p-4 my-2 relative">
-        <div className="absolute right-5 top-6">
+        <div className="absolute right-5 top-6 z-50">
           <DropdownMenu>
             <DropdownMenuTrigger>
               <HiDotsHorizontal />
@@ -65,35 +60,42 @@ export default function PostCard({ post }: { post: Post }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Image
-          src={
-            user?.profile_picture ||
-            'https://npnifamrslmcrjtysuhs.supabase.co/storage/v1/object/sign/profile-pics/default/default_pp.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJwcm9maWxlLXBpY3MvZGVmYXVsdC9kZWZhdWx0X3BwLmpwZyIsImlhdCI6MTczNjg4MjE1OSwiZXhwIjozMTU1MzA1MzQ2MTU5fQ.XsqHIGH1gc1Ct2uakTKnnNg7W6HHgm4tu0AKRyu3zXw&t=2025-01-14T19%3A15%3A59.231Z'
-          }
-          alt="profile picture"
-          width={32}
-          height={32}
-          className="rounded-full inline-flex border border-border"
-        />
-        <h2 className="inline-flex pl-2 font-black">{user?.username}</h2>
-        <Dot className="inline-flex" />
-        <p className="inline-flex text-xs">{time}</p>
-        <p className="text-xl pt-3 pb-2">{post.content}</p>
-        {post.media && (
+        <Link
+          href={`p/${post?.id}`}
+          passHref
+          scroll={false}
+          shallow={true}
+          prefetch={true}>
           <Image
-            src={post.media}
-            alt="post image"
-            width={500}
-            height={500}
-            className="rounded-lg"
+            src={
+              user?.profile_picture ||
+              process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
+            }
+            alt="profile picture"
+            width={32}
+            height={32}
+            className="rounded-full inline-flex border border-border"
           />
-        )}
-        <div className="flex justify-between pt-1 w-1/5">
-          <FaRegComment />0
-          <FaRegHeart />0
-          <LuShare />
-        </div>
+          <h2 className="inline-flex pl-2 font-black">{user?.username}</h2>
+          <Dot className="inline-flex" />
+          <p className="inline-flex text-xs">{time}</p>
+          <p className="text-xl pt-3 pb-2">{post.content}</p>
+          {post.media && (
+            <Image
+              src={post.media}
+              alt="post image"
+              width={500}
+              height={500}
+              className="rounded-lg"
+            />
+          )}
+          <div className="flex justify-between pt-1 w-1/5">
+            <FaRegComment />0
+            <FaRegHeart />0
+            <LuShare />
+          </div>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }

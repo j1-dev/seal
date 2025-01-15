@@ -32,7 +32,7 @@ type Comment = {
   user_id: UUID;
   content: string;
   parent_comment_id?: UUID | null;
-  created_at: string;
+  created_at?: string;
 };
 
 type CommentReaction = {

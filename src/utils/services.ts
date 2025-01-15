@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database, Post, User } from '@/utils/types';
+import { Database, Post, User, Comment } from '@/utils/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -113,12 +113,7 @@ export const deleteReaction = async (id: string) => {
 };
 
 // --- Comment Services ---
-export const createComment = async (
-  comment: Omit<
-    Database['public']['Tables']['Comments']['Row'],
-    'id' | 'created_at'
-  >
-) => {
+export const createComment = async (comment: Comment) => {
   const { data, error } = await supabase
     .from('comments')
     .insert(comment)
