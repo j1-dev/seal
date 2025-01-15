@@ -2,6 +2,15 @@ import { Post, User } from '@/utils/types';
 import React, { useState, useEffect } from 'react';
 import { getUserById } from '@/utils/services';
 import { relativeTime } from '@/utils/utils';
+import { HiDotsHorizontal } from 'react-icons/hi';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 
 export default function PostCard({ post }: { post: Post }) {
@@ -17,7 +26,28 @@ export default function PostCard({ post }: { post: Post }) {
   }, [post.user_id]);
 
   return (
-    <div key={post.id} className="border-b border-border p-4 my-2">
+    <div key={post.id} className="border-b border-border p-4 my-2 relative">
+      <div className="absolute right-5 top-6">
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <HiDotsHorizontal />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuLabel>Options</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Share</DropdownMenuItem>
+            <DropdownMenuItem>Report</DropdownMenuItem>
+            {user?.id === post.user_id && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-500">
+                  Delete
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <Image
         src={
           user?.profile_picture ||

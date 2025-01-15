@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 export function Sendbox() {
   const [content, setContent] = useState<string>('');
+  const [disabled, setDisabled] = useState<boolean>(false);
   const supabase = createClient();
   const user = supabase.auth.getUser();
 
@@ -22,6 +23,7 @@ export function Sendbox() {
   };
 
   const handleSend = async () => {
+    setDisabled(true);
     if (!content.trim()) return; // Prevent sending empty posts
 
     try {
@@ -31,16 +33,20 @@ export function Sendbox() {
     } catch (error) {
       console.error('Failed to send post:', error);
     }
+    setDisabled(false);
   };
 
   return (
-    <div className="grid w-full gap-4 px-4">
+    <div className="grid w-full gap-4 px-4 border-b border-border pb-4">
       <Textarea
+        disabled={disabled}
         placeholder="Type your message here."
         value={content}
         onChange={(e) => setContent(e.target.value)}
       />
-      <Button onClick={handleSend}>Send message</Button>
+      <Button disabled={disabled} onClick={handleSend}>
+        {!disabled ? 'Send message' : 'Sending...'}
+      </Button>
     </div>
   );
 }
