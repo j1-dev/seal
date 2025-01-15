@@ -1,6 +1,6 @@
 import { Post, User } from '@/utils/types';
 import React, { useState, useEffect } from 'react';
-import { getUserById } from '@/utils/services';
+import { getUserById, deletePost } from '@/utils/services';
 import { relativeTime } from '@/utils/utils';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import {
@@ -12,6 +12,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
+import {
+  FaRegComment,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  FaHeart,
+  FaRegHeart,
+  FaRegTrashCan,
+} from 'react-icons/fa6';
+import { LuShare } from 'react-icons/lu';
+import { Dot } from 'lucide-react';
 
 export default function PostCard({ post }: { post: Post }) {
   const [time] = useState<string>(relativeTime(post?.created_at || ''));
@@ -38,12 +47,13 @@ export default function PostCard({ post }: { post: Post }) {
             <DropdownMenuItem>Share</DropdownMenuItem>
             <DropdownMenuItem>Report</DropdownMenuItem>
             {user?.id === post.user_id && (
-              <>
+              <div onClick={() => post.id && deletePost(post.id)}>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-500">
-                  Delete
+                <DropdownMenuItem className="text-red-500 cursor-pointer">
+                  <FaRegTrashCan />
+                  <span className='pt-1'>Delete</span>
                 </DropdownMenuItem>
-              </>
+              </div>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -59,8 +69,23 @@ export default function PostCard({ post }: { post: Post }) {
         className="rounded-full inline-flex border border-border"
       />
       <h2 className="inline-flex pl-2 font-black">{user?.username}</h2>
+      <Dot className="inline-flex" />
+      <p className="inline-flex text-xs">{time}</p>
       <p className="text-xl pt-3 pb-2">{post.content}</p>
-      <p className="text-xs text-primary">{time}</p>
+      {post.media && (
+        <Image
+          src={post.media}
+          alt="post image"
+          width={500}
+          height={500}
+          className="rounded-lg"
+        />
+      )}
+      <div className="flex justify-between pt-1 w-1/5">
+        <FaRegComment />0
+        <FaRegHeart />0
+        <LuShare />
+      </div>
     </div>
   );
 }

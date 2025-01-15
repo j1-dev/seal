@@ -31,7 +31,7 @@ export default function RootLayout({
           <div className="relative flex min-h-svh flex-col bg-background">
             {children}
           </div>
-          <div className="z-50 absolute bottom-5 right-5">
+          <div className="z-50 fixed bottom-5 right-5">
             <ThemeSwitcher />
           </div>
         </ThemeProvider>
