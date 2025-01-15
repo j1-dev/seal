@@ -19,6 +19,7 @@ export default function CommendFeed({
 
   useEffect(() => {
     if (!id) return;
+    console.log('Fetching comments for post:', id);
     const getComments = async () => {
       const data = await getCommentsByPostId(id);
       setComments(data);
@@ -27,6 +28,23 @@ export default function CommendFeed({
 
     const channel = supabase
       .channel(`comments-feed-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'comments',
+          // filter: `post_id=eq.${id}`,
+        },
+        (payload) => {
+          console.log('Comment deleted:', payload.old);
+          setComments((prevComments) =>
+            (prevComments || []).filter(
+              (comment) => comment.id !== payload.old.id
+            )
+          );
+        }
+      )
       .on(
         'postgres_changes',
         {
@@ -43,26 +61,9 @@ export default function CommendFeed({
           ]);
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'comments',
-          filter: `post_id=eq.${id}`,
-        },
-        (payload) => {
-          console.log('Comment deleted:', payload.old);
-          setComments((prevComments) =>
-            (prevComments || []).filter(
-              (comment) => comment.id !== payload.old.id
-            )
-          );
-        }
-      )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to comments updates');
+          console.log('Successfully subscribed to comments updates: ', id);
         }
       });
 

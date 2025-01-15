@@ -97,7 +97,7 @@ export default function PostPage() {
           height={48}
           className="rounded-full inline-flex border border-border"
         />
-        <p className="inline-flex pl-4">{user?.username}</p>
+        <p className="inline-flex pl-4 font-semibold">{user?.username}</p>
         <Dot className="inline-flex" />
         <p className="inline-flex text-xs">{time}</p>
       </div>
