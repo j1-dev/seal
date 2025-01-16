@@ -105,7 +105,7 @@ export default function PostCard({ post }: { post: Post }) {
           </DropdownMenu>
         </div>
         <Link
-          href={`p/${post?.id}`}
+          href={`/p/${post?.id}`}
           passHref
           scroll={false}
           shallow={true}
