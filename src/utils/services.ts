@@ -260,6 +260,26 @@ export const getPostsCommentsCount = async (postId: string) => {
   return count;
 };
 
+export const likeComment = async (commentId: string, userId: string) => {
+  const { data, error } = await supabase
+    .from('comment-likes')
+    .insert({ comment_id: commentId, user_id: userId })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const unlikeComment = async (commentId: string, userId: string) => {
+  const { error } = await supabase
+    .from('comment-likes')
+    .delete()
+    .eq('comment_id', commentId)
+    .eq('user_id', userId);
+  if (error) throw error;
+  return true;
+};
+
 // --- Friendship Services ---
 export const createFriendship = async (
   friendship: Omit<

@@ -34,6 +34,8 @@ type Comment = {
   content: string;
   parent_comment_id?: UUID | null;
   created_at?: string;
+  comment_count?: number;
+  like_count?: number;
 };
 
 type CommentLike = {
