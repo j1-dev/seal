@@ -1,6 +1,6 @@
 'use client';
 
-import Feed from '@/components/feed';
+import Feed from '@/components/post-feed';
 import { Sendbox } from '@/components/send-box';
 // import { createClient } from '@/utils/supabase/client';
 // import { useEffect } from 'react';

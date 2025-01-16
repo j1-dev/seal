@@ -11,13 +11,13 @@ export default function AuthLayout({
         <aside className="w-40">
           <Navbar />
         </aside>
-        <div className="flex-1 py-4">{children}</div>
+        <div className="flex-1 ">{children}</div>
         <aside className="w-40 p-4 border-l">
-          <input
+          {/* <input
             type="text"
             placeholder="Search users..."
             className="p-2 border rounded-md fixed w-32"
-          />
+          /> */}
         </aside>
       </main>
     </div>

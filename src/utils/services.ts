@@ -27,6 +27,39 @@ export const getUserById = async (id: string) => {
   return data;
 };
 
+export const getUserStatsById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select(
+      `
+      *,
+      posts:posts(count),
+      friendships:friendships!friendships_user_id_1_fkey(count),
+      likes:posts!inner(id, likes(count))
+    `
+    )
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+
+  const user = data;
+  const postCount = data.posts[0].count;
+  const friendCount = data.friendships[0].count;
+  const likeCount: number = data.likes.reduce(
+    (acc: number, post: { likes: { count: number }[] }) =>
+      acc + post.likes[0].count,
+    0
+  );
+
+  return {
+    user,
+    postCount,
+    friendCount,
+    likeCount,
+  };
+};
+
 export const updateUser = async (
   id: string,
   updates: Partial<Database['public']['Tables']['Users']['Row']>

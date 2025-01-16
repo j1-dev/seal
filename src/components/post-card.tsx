@@ -133,31 +133,32 @@ export default function PostCard({ post }: { post: Post }) {
               className="rounded-lg"
             />
           )}
-          <div className=" my-2 flex items-center justify-start pt-2 gap-4">
-            {/* Comment Icon and Count */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FaRegComment className="cursor-pointer hover:text-primary" />
-              <span>{post?.comment_count}</span>
-            </div>
-
-            {/* Like Icon and Count */}
-            <div
-              onClick={handleLike}
-              className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-              {liked ? (
-                <FaHeart className="text-red-500 hover:scale-110 transition-transform" />
-              ) : (
-                <FaRegHeart className="hover:text-primary hover:scale-110 transition-transform" />
-              )}
-              <span>{likeCount}</span>
-            </div>
-
-            {/* Share Icon */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-              <LuShare className="hover:text-primary hover:scale-110 transition-transform" />
-            </div>
-          </div>
         </Link>
+
+        <div className=" my-2 flex items-center justify-start pt-2 gap-4">
+          {/* Comment Icon and Count */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <FaRegComment className="cursor-pointer hover:text-primary" />
+            <span>{post?.comment_count}</span>
+          </div>
+
+          {/* Like Icon and Count */}
+          <div
+            onClick={handleLike}
+            className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+            {liked ? (
+              <FaHeart className="text-red-500 hover:scale-110 transition-transform" />
+            ) : (
+              <FaRegHeart className="hover:text-primary hover:scale-110 transition-transform" />
+            )}
+            <span>{likeCount}</span>
+          </div>
+
+          {/* Share Icon */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+            <LuShare className="hover:text-primary hover:scale-110 transition-transform" />
+          </div>
+        </div>
       </div>
     </div>
   );

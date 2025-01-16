@@ -37,7 +37,7 @@ export function Sendbox() {
   };
 
   return (
-    <div className="grid w-full gap-4 px-4 border-b border-border pb-4">
+    <div className="grid w-full gap-4 border-b border-border p-4">
       <Textarea
         disabled={disabled}
         placeholder="Type your message here."

@@ -17,11 +17,11 @@ import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { FaHeart, FaRegComment, FaRegHeart } from 'react-icons/fa6';
 import { LuShare } from 'react-icons/lu';
-import { IoArrowBack } from 'react-icons/io5';
 import { Textarea } from '@/components/ui/textarea';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import CommentFeed from '@/components/comment-feed';
+import TopBar from '@/components/tob-bar';
 
 const getLikedPosts = () =>
   JSON.parse(localStorage.getItem('likedPosts') || '[]');
@@ -121,16 +121,7 @@ export default function PostPage() {
 
   return (
     <div>
-      <div className="relative h-12">
-        <IoArrowBack
-          onClick={() => history.back()}
-          size={32}
-          className="absolute left-4 top-0 cursor-pointer transition-colors hover:text-foreground/80"
-        />
-        <h1 className="text-2xl font-bold mx-4 mb-2 absolute left-1/2 -translate-x-full">
-          Post
-        </h1>
-      </div>
+      <TopBar title="Post" />
       <Separator />
       <div className="mx-4 my-2">
         <Image

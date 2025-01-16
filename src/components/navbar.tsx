@@ -18,9 +18,23 @@ import {
 } from 'react-icons/ri';
 import { cn } from '@/utils/utils';
 import { signOutAction } from '@/app/actions';
+import { createClient } from '@/utils/supabase/client';
+import { useEffect, useState } from 'react';
 
 export function Navbar() {
   const pathname = usePathname();
+  const supabase = createClient();
+  const [id, setId] = useState('');
+
+  useEffect(() => {
+    const getUserId = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setId(user?.id || '');
+    };
+    getUserId();
+  }, []);
 
   return (
     <aside className="border-border fixed top-0 z-50 h-full w-40 border-r">
@@ -80,14 +94,15 @@ export function Navbar() {
             </div>
           </Link>
           <Link
-            href="/profile"
+            href={`/u/${id}`}
             className={cn(
               'transition-colors hover:text-foreground/80 py-1',
-              pathname === '/profile' ? 'font-black' : 'font-normal'
-            )}>
+              pathname?.startsWith('/u') ? 'font-black' : 'font-normal'
+            )}
+            prefetch={true}>
             <div className="inline-flex items-center gap-2">
               <span className="pr-2 pt-2 text-lg">Profile</span>
-              {pathname === '/profile' ? (
+              {pathname?.startsWith('/u') ? (
                 <RiUser3Fill size={32} />
               ) : (
                 <RiUser3Line size={32} />

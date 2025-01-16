@@ -2,7 +2,7 @@ import { getPostsWithCounts } from '@/utils/services';
 import { Post } from '@/utils/types';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import PostCard from '@/components/post';
+import PostCard from '@/components/post-card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function Feed() {
