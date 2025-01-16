@@ -260,6 +260,16 @@ export const getPostsCommentsCount = async (postId: string) => {
   return count;
 };
 
+export const getCommentLikeCount = async (id: string) => {
+  const { count, error } = await supabase
+    .from('comment-likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('comment_id', id);
+
+  if (error) throw error;
+  return count;
+};
+
 export const likeComment = async (commentId: string, userId: string) => {
   const { data, error } = await supabase
     .from('comment-likes')

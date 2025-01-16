@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Comment, User } from '@/utils/types';
 import {
   deleteComment,
+  getCommentLikeCount,
   getUserById,
   likeComment,
   unlikeComment,
@@ -30,16 +31,19 @@ import { LuShare } from 'react-icons/lu';
 import { relativeTime } from '@/utils/utils';
 
 const getLikedComments = () =>
-  JSON.parse(localStorage.getItem('likedPosts') || '[]');
+  JSON.parse(localStorage.getItem('likedComments') || '[]');
 
-const updateLikedComments = (postId: string, isLiked: boolean) => {
-  const likedPosts = getLikedComments();
+const updateLikedComments = (commentId: string, isLiked: boolean) => {
+  const likedComments = getLikedComments();
   if (isLiked) {
-    localStorage.setItem('likedPosts', JSON.stringify([...likedPosts, postId]));
+    localStorage.setItem(
+      'likedComments',
+      JSON.stringify([...likedComments, commentId])
+    );
   } else {
     localStorage.setItem(
-      'likedPosts',
-      JSON.stringify(likedPosts.filter((id: string) => id !== postId))
+      'likedComments',
+      JSON.stringify(likedComments.filter((id: string) => id !== commentId))
     );
   }
 };
@@ -56,7 +60,11 @@ export default function CommentCard({ comment }: { comment: Comment }) {
       setUser(data);
     };
     getUser();
-  }, [comment.user_id]);
+    getCommentLikeCount(comment.id as string).then((count) =>
+      setLikeCount(count as number)
+    );
+    setLiked(getLikedComments().includes(comment.id));
+  }, [comment.user_id, comment.id]);
 
   const handleLike = async () => {
     if (!comment.id || !user?.id) return;
