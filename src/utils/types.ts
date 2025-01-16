@@ -18,11 +18,10 @@ type Post = {
   created_at?: string;
 };
 
-type Reaction = {
+type Like = {
   id?: UUID | null;
   post_id: UUID;
   user_id: UUID;
-  type: 'heart' | 'repost';
   created_at: string;
 };
 
@@ -35,11 +34,10 @@ type Comment = {
   created_at?: string;
 };
 
-type CommentReaction = {
+type CommentLike = {
   id?: UUID | null;
   comment_id: UUID;
   user_id: UUID;
-  type: 'heart';
   created_at: string;
 };
 
@@ -84,7 +82,7 @@ type ChatRoomMessage = {
 type Notification = {
   id?: UUID | null;
   user_id: UUID;
-  type: 'friend_request' | 'message' | 'reaction' | 'comment';
+  type: 'friend_request' | 'message' | 'like' | 'comment';
   content: string;
   is_read: boolean;
   created_at: string;
@@ -260,9 +258,9 @@ export type Database = {
 export type {
   User,
   Post,
-  Reaction,
+  Like,
   Comment,
-  CommentReaction,
+  CommentLike,
   Friendship,
   Message,
   ChatRoom,

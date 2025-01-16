@@ -1,6 +1,12 @@
 import { Post, User } from '@/utils/types';
 import React, { useState, useEffect } from 'react';
-import { getUserById, deletePost } from '@/utils/services';
+import {
+  getUserById,
+  deletePost,
+  unlikePost,
+  likePost,
+  getLikeCount,
+} from '@/utils/services';
 import { relativeTime } from '@/utils/utils';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import {
@@ -14,7 +20,6 @@ import {
 import Image from 'next/image';
 import {
   FaRegComment,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   FaHeart,
   FaRegHeart,
   FaRegTrashCan,
@@ -23,9 +28,26 @@ import { LuShare } from 'react-icons/lu';
 import { Dot } from 'lucide-react';
 import Link from 'next/link';
 
+const getLikedPosts = () =>
+  JSON.parse(localStorage.getItem('likedPosts') || '[]');
+
+const updateLikedPosts = (postId: string, isLiked: boolean) => {
+  const likedPosts = getLikedPosts();
+  if (isLiked) {
+    localStorage.setItem('likedPosts', JSON.stringify([...likedPosts, postId]));
+  } else {
+    localStorage.setItem(
+      'likedPosts',
+      JSON.stringify(likedPosts.filter((id: string) => id !== postId))
+    );
+  }
+};
+
 export default function PostCard({ post }: { post: Post }) {
   const [time] = useState<string>(relativeTime(post?.created_at || ''));
   const [user, setUser] = useState<User | null>();
+  const [liked, setLiked] = useState<boolean>(false);
+  const [likeCount, setLikeCount] = useState<number>(0);
 
   useEffect(() => {
     const getUser = async () => {
@@ -33,7 +55,29 @@ export default function PostCard({ post }: { post: Post }) {
       setUser(data);
     };
     getUser();
-  }, [post.user_id]);
+    getLikeCount(post.id as string).then((count) => setLikeCount(count));
+    setLiked(getLikedPosts().includes(post.id));
+  }, [post.user_id, post.id]);
+
+  const handleLike = async () => {
+    if (!post.id || !user?.id) return;
+
+    if (liked) {
+      const success = await unlikePost(post.id, user.id);
+      if (success) {
+        setLiked(false);
+        setLikeCount((prev) => Math.max(prev - 1, 0));
+        updateLikedPosts(post.id, false);
+      }
+    } else {
+      const success = await likePost(post.id, user.id);
+      if (success) {
+        setLiked(true);
+        setLikeCount((prev) => prev + 1);
+        updateLikedPosts(post.id, true);
+      }
+    }
+  };
 
   return (
     <div>
@@ -89,10 +133,29 @@ export default function PostCard({ post }: { post: Post }) {
               className="rounded-lg"
             />
           )}
-          <div className="flex justify-between pt-1 w-1/5">
-            <FaRegComment />0
-            <FaRegHeart />0
-            <LuShare />
+          <div className=" my-2 flex items-center justify-start pt-2 gap-4">
+            {/* Comment Icon and Count */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <FaRegComment className="cursor-pointer hover:text-primary" />
+              <span>0</span>
+            </div>
+
+            {/* Like Icon and Count */}
+            <div
+              onClick={handleLike}
+              className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+              {liked ? (
+                <FaHeart className="text-red-500 hover:scale-110 transition-transform" />
+              ) : (
+                <FaRegHeart className="hover:text-primary hover:scale-110 transition-transform" />
+              )}
+              <span>{likeCount}</span>
+            </div>
+
+            {/* Share Icon */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+              <LuShare className="hover:text-primary hover:scale-110 transition-transform" />
+            </div>
           </div>
         </Link>
       </div>

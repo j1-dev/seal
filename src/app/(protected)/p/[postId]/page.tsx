@@ -1,6 +1,13 @@
 'use client';
 
-import { createComment, getPostById, getUserById } from '@/utils/services';
+import {
+  createComment,
+  getLikeCount,
+  getPostById,
+  getUserById,
+  likePost,
+  unlikePost,
+} from '@/utils/services';
 import { Comment, Post, User } from '@/utils/types';
 import { useParams } from 'next/navigation';
 import { Dot } from 'lucide-react';
@@ -8,13 +15,28 @@ import { relativeTime } from '@/utils/utils';
 import React, { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
-import { FaRegComment, FaRegHeart } from 'react-icons/fa6';
+import { FaHeart, FaRegComment, FaRegHeart } from 'react-icons/fa6';
 import { LuShare } from 'react-icons/lu';
 import { IoArrowBack } from 'react-icons/io5';
 import { Textarea } from '@/components/ui/textarea';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import CommentFeed from '@/components/comment-feed';
+
+const getLikedPosts = () =>
+  JSON.parse(localStorage.getItem('likedPosts') || '[]');
+
+const updateLikedPosts = (postId: string, isLiked: boolean) => {
+  const likedPosts = getLikedPosts();
+  if (isLiked) {
+    localStorage.setItem('likedPosts', JSON.stringify([...likedPosts, postId]));
+  } else {
+    localStorage.setItem(
+      'likedPosts',
+      JSON.stringify(likedPosts.filter((id: string) => id !== postId))
+    );
+  }
+};
 
 export default function PostPage() {
   const { postId } = useParams();
@@ -23,6 +45,8 @@ export default function PostPage() {
   const [time, setTime] = useState<string>(
     relativeTime(post?.created_at || '')
   );
+  const [likeCount, setLikeCount] = useState<number>(0);
+  const [liked, setLiked] = useState<boolean>(false);
   const [content, setContent] = useState<string>('');
   const [disabled, setDisabled] = useState<boolean>(false);
 
@@ -45,6 +69,8 @@ export default function PostPage() {
         setUser(data);
       };
       getUser();
+      getLikeCount(post.id as string).then((count) => setLikeCount(count));
+      setLiked(getLikedPosts().includes(post.id));
     }
   }, [post]);
 
@@ -57,6 +83,26 @@ export default function PostPage() {
       // created_at: new Date().toISOString(),
     };
     return comment;
+  };
+
+  const handleLike = async () => {
+    if (!post?.id || !user?.id) return;
+
+    if (liked) {
+      const success = await unlikePost(post.id, user.id);
+      if (success) {
+        setLiked(false);
+        setLikeCount((prev) => Math.max(prev - 1, 0));
+        updateLikedPosts(post.id, false);
+      }
+    } else {
+      const success = await likePost(post.id, user.id);
+      if (success) {
+        setLiked(true);
+        setLikeCount((prev) => prev + 1);
+        updateLikedPosts(post.id, true);
+      }
+    }
   };
 
   const handleSendComment = async () => {
@@ -111,10 +157,29 @@ export default function PostPage() {
           className="rounded-lg"
         />
       )}
-      <div className="mx-4 my-2 flex justify-between pt-1 w-1/5">
-        <FaRegComment />0
-        <FaRegHeart />0
-        <LuShare />
+      <div className="mx-4 my-2 flex items-center justify-between pt-2 gap-4">
+        {/* Comment Icon and Count */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <FaRegComment className="cursor-pointer hover:text-primary" />
+          <span>0</span>
+        </div>
+
+        {/* Like Icon and Count */}
+        <div
+          onClick={handleLike}
+          className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+          {liked ? (
+            <FaHeart className="text-red-500 hover:scale-110 transition-transform" />
+          ) : (
+            <FaRegHeart className="hover:text-primary hover:scale-110 transition-transform" />
+          )}
+          <span>{likeCount}</span>
+        </div>
+
+        {/* Share Icon */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+          <LuShare className="hover:text-primary hover:scale-110 transition-transform" />
+        </div>
       </div>
       <Separator />
       <div className="grid w-full gap-4 px-4 border-b border-border pb-4">

@@ -91,25 +91,66 @@ export const deletePost = async (id: string) => {
   if (error) throw error;
 };
 
-// --- Reaction Services ---
-export const createReaction = async (
-  reaction: Omit<
-    Database['public']['Tables']['Reactions']['Row'],
-    'id' | 'created_at'
-  >
-) => {
+export const getPostsLikedByUser = async (userId: string) => {
   const { data, error } = await supabase
-    .from('reactions')
-    .insert(reaction)
+    .from('likes')
+    .select('post_id, posts(content, media, created_at)')
+    .eq('user_id', userId);
+  if (error) throw error;
+
+  return data;
+};
+
+// --- Like Services ---
+// export const createLike = async (
+//   like: Like
+// ) => {
+//   const { data, error } = await supabase
+//     .from('likes')
+//     .insert(like)
+//     .select('*')
+//     .single();
+//   if (error) throw error;
+//   return data;
+// };
+
+// export const deleteLike = async (id: string) => {
+//   const { error } = await supabase.from('reactions').delete().eq('id', id);
+//   if (error) throw error;
+// };
+
+export const likePost = async (postId: string, userId: string) => {
+  const { data, error } = await supabase
+    .from('likes')
+    .insert({ post_id: postId, user_id: userId })
     .select('*')
     .single();
   if (error) throw error;
   return data;
 };
 
-export const deleteReaction = async (id: string) => {
-  const { error } = await supabase.from('reactions').delete().eq('id', id);
+export const unlikePost = async (postId: string, userId: string) => {
+  const { error } = await supabase
+    .from('likes')
+    .delete()
+    .eq('post_id', postId)
+    .eq('user_id', userId);
   if (error) throw error;
+  return true;
+};
+
+export const getLikeCount = async (postId: string): Promise<number> => {
+  const { count, error } = await supabase
+    .from('likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', postId);
+
+  if (error) {
+    console.error('Error fetching like count:', error);
+    return 0;
+  }
+
+  return count || 0;
 };
 
 // --- Comment Services ---
@@ -136,6 +177,20 @@ export const getCommentsByPostId = async (postId: string) => {
 export const deleteComment = async (id: string) => {
   const { error } = await supabase.from('comments').delete().eq('id', id);
   if (error) throw error;
+};
+
+export const getPostsCommentsCount = async (postId: string) => {
+  const { count, error } = await supabase
+    .from('comments')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', postId);
+
+  if (error) {
+    console.error('Error fetching comment count:', error);
+    return 0;
+  }
+
+  return count;
 };
 
 // --- Friendship Services ---
