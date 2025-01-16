@@ -16,6 +16,8 @@ type Post = {
   content: string;
   media?: string | null;
   created_at?: string;
+  comment_count?: number;
+  like_count?: number;
 };
 
 type Like = {

@@ -1,4 +1,4 @@
-import { getAllPosts } from '@/utils/services';
+import { getPostsWithCounts } from '@/utils/services';
 import { Post } from '@/utils/types';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
@@ -11,12 +11,19 @@ export default function Feed() {
   const supabase = createClient();
 
   useEffect(() => {
+    // const getPosts = async () => {
+    //   const data = await getAllPosts();
+    //   setPosts(data);
+    //   setLoading(false);
+    // };
+
     const getPosts = async () => {
-      const data = await getAllPosts();
-      console.log(data);
+      const data = await getPostsWithCounts();
       setPosts(data);
       setLoading(false);
+      console.log(data);
     };
+
     getPosts();
     // Subscribe to new posts
     const channel = supabase

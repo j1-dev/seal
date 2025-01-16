@@ -137,7 +137,7 @@ export default function PostCard({ post }: { post: Post }) {
             {/* Comment Icon and Count */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <FaRegComment className="cursor-pointer hover:text-primary" />
-              <span>0</span>
+              <span>{post?.comment_count}</span>
             </div>
 
             {/* Like Icon and Count */}

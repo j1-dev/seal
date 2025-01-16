@@ -66,14 +66,48 @@ export const getAllPosts = async () => {
   return data;
 };
 
+export const getPostsWithCounts = async () => {
+  const { data, error } = await supabase
+    .from('posts')
+    .select(
+      `
+      *,
+      comments(count),
+      likes(count)
+    `
+    )
+    .order('created_at', { ascending: false }); // Order by latest posts
+
+  if (error) {
+    console.error('Error fetching posts with counts:', error);
+    throw error;
+  }
+
+  return data.map((post) => ({
+    ...post,
+    comment_count: post.comments[0].count,
+    like_count: post.likes[0].count,
+  }));
+};
+
 export const getPostById = async (id: string) => {
   const { data, error } = await supabase
     .from('posts')
-    .select('*')
+    .select(
+      `
+      *,
+      comments(count),
+      likes(count)
+    `
+    )
     .eq('id', id)
     .single();
   if (error) throw error;
-  return data;
+  return {
+    ...data,
+    comment_count: data.comments[0].count,
+    like_count: data.likes[0].count,
+  };
 };
 
 export const getPostsByUserId = async (userId: string) => {
