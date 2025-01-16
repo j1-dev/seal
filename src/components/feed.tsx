@@ -3,9 +3,11 @@ import { Post } from '@/utils/types';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import PostCard from '@/components/post';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function Feed() {
   const [posts, setPosts] = useState<Post[]>();
+  const [loading, setLoading] = useState<boolean>(true);
   const supabase = createClient();
 
   useEffect(() => {
@@ -13,6 +15,7 @@ export default function Feed() {
       const data = await getAllPosts();
       console.log(data);
       setPosts(data);
+      setLoading(false);
     };
     getPosts();
     // Subscribe to new posts
@@ -54,9 +57,15 @@ export default function Feed() {
 
   return (
     <div>
-      {posts?.map((post: Post) => (
-        <PostCard post={post} key={post.id} />
-      ))}
+      {loading ? (
+        <LoadingSpinner className="mx-auto mt-10 w-20 h-20" />
+      ) : (
+        <div>
+          {posts?.map((post: Post) => (
+            <PostCard post={post} key={post.id} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

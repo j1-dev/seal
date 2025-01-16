@@ -6,6 +6,7 @@ import CommentCard from '@/components/comment-card';
 import { createClient } from '@/utils/supabase/client';
 import React, { useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function CommendFeed({
   id,
@@ -15,6 +16,7 @@ export default function CommendFeed({
   // isPost: boolean;
 }) {
   const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const supabase = createClient();
 
   useEffect(() => {
@@ -23,6 +25,7 @@ export default function CommendFeed({
     const getComments = async () => {
       const data = await getCommentsByPostId(id);
       setComments(data);
+      setLoading(false);
     };
     getComments();
 
@@ -74,12 +77,18 @@ export default function CommendFeed({
 
   return (
     <div>
-      {comments?.map((comment) => (
-        <div key={comment.id}>
-          <CommentCard comment={comment} />
-          <Separator />
+      {loading ? (
+        <LoadingSpinner className="mx-auto mt-10 w-20 h-20" />
+      ) : (
+        <div>
+          {comments?.map((comment) => (
+            <div key={comment.id}>
+              <CommentCard comment={comment} />
+              <Separator />
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }
