@@ -27,14 +27,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ThemeProvider defaultTheme="system" attribute="class" enableSystem>
-          <div className="relative flex min-h-svh flex-col bg-background">
-            {children}
-          </div>
-          <div className="z-50 fixed bottom-5 right-5">
-            <ThemeSwitcher />
-          </div>
-        </ThemeProvider>
+          <ThemeProvider defaultTheme="system" attribute="class" enableSystem>
+            <div className="relative flex min-h-svh flex-col bg-background">
+              {children}
+            </div>
+            <div className="z-50 fixed bottom-5 right-5">
+              <ThemeSwitcher />
+            </div>
+          </ThemeProvider>
       </body>
     </html>
   );

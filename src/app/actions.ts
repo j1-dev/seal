@@ -65,6 +65,9 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect('error', '/login', error.message);
   }
 
+  // Trigger rehydration (force onAuthStateChange to fire)
+  await supabase.auth.getSession();
+
   return redirect('/home');
 };
 
@@ -142,5 +145,6 @@ export const resetPasswordAction = async (formData: FormData) => {
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  await supabase.auth.getSession();
   return redirect('/login');
 };

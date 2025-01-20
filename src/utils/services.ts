@@ -123,6 +123,8 @@ export const getPostsWithCounts = async () => {
   }));
 };
 
+
+
 export const getPostById = async (id: string) => {
   const { data, error } = await supabase
     .from('posts')
@@ -218,6 +220,18 @@ export const getLikeCount = async (postId: string): Promise<number> => {
   }
 
   return count || 0;
+};
+
+export const isPostLikedByUser = async (postId: string, userId: string): Promise<boolean> => {
+  const { count, error } = await supabase
+    .from('likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('post_id', postId)
+    .eq('user_id', userId);
+
+  if (error) throw error;
+
+  return (count ?? 0) > 0;
 };
 
 // --- Comment Services ---

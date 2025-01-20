@@ -27,61 +27,79 @@ import {
 import { LuShare } from 'react-icons/lu';
 import { Dot } from 'lucide-react';
 import Link from 'next/link';
+import { useUser } from '@/utils/context/auth';
 
-const getLikedPosts = () =>
-  JSON.parse(localStorage.getItem('likedPosts') || '[]');
+const getLikedPosts = (userId: string) =>
+  JSON.parse(localStorage.getItem(`likedPosts_${userId}`) || '[]');
 
-const updateLikedPosts = (postId: string, isLiked: boolean) => {
-  const likedPosts = getLikedPosts();
+const updateLikedPosts = (userId: string, postId: string, isLiked: boolean) => {
+  const likedPosts = getLikedPosts(userId);
   if (isLiked) {
-    localStorage.setItem('likedPosts', JSON.stringify([...likedPosts, postId]));
+    localStorage.setItem(
+      `likedPosts_${userId}`,
+      JSON.stringify([...likedPosts, postId])
+    );
   } else {
     localStorage.setItem(
-      'likedPosts',
+      `likedPosts_${userId}`,
       JSON.stringify(likedPosts.filter((id: string) => id !== postId))
     );
   }
 };
 
 export default function PostCard({ post }: { post: Post }) {
-  const [time] = useState<string>(relativeTime(post?.created_at || ''));
-  const [user, setUser] = useState<User | null>();
-  const [liked, setLiked] = useState<boolean>(false);
-  const [likeCount, setLikeCount] = useState<number>(0);
+  const { user: currentUser } = useUser(); // Get logged-in user ID
+  const [author, setAuthor] = useState<User | null>(null); // Post author's data
+  const [liked, setLiked] = useState<boolean>(false); // Like status
+  const [likeCount, setLikeCount] = useState<number>(0); // Like count
+  const [time] = useState<string>(relativeTime(post?.created_at || '')); // Relative time display
 
+  // Fetch the post author's data and like status
   useEffect(() => {
-    const getUser = async () => {
-      const data = await getUserById(post.user_id);
-      setUser(data);
-    };
-    getUser();
-    getLikeCount(post.id as string).then((count) => setLikeCount(count));
-    setLiked(getLikedPosts().includes(post.id));
-  }, [post.user_id, post.id]);
+    if (!currentUser) return;
 
+    const fetchData = async () => {
+      // Fetch author details
+      const authorData = await getUserById(post.user_id);
+      setAuthor(authorData);
+
+      // Fetch like count
+      const likeCount = await getLikeCount(post.id || '');
+      setLikeCount(likeCount);
+
+      // Check if current user has liked the post
+      const likedPosts = getLikedPosts(currentUser.id);
+      setLiked(likedPosts.includes(post.id));
+    };
+
+    fetchData();
+  }, [post.id, post.user_id, currentUser]);
+
+  // Handle like/unlike logic
   const handleLike = async () => {
-    if (!post.id || !user?.id) return;
+    if (!post.id || !currentUser) return;
 
     if (liked) {
-      const success = await unlikePost(post.id, user.id);
+      const success = await unlikePost(post.id, currentUser.id);
       if (success) {
-        setLiked(false);
+        updateLikedPosts(currentUser.id, post.id, false);
         setLikeCount((prev) => Math.max(prev - 1, 0));
-        updateLikedPosts(post.id, false);
       }
     } else {
-      const success = await likePost(post.id, user.id);
+      const success = await likePost(post.id, currentUser.id);
       if (success) {
-        setLiked(true);
+        updateLikedPosts(currentUser.id, post.id, true);
         setLikeCount((prev) => prev + 1);
-        updateLikedPosts(post.id, true);
       }
     }
+
+    setLiked(!liked); // Optimistically update like status
   };
 
   return (
     <div>
       <div key={post.id} className="border-b border-border p-4 my-2 relative">
+        {/* Dropdown menu */}
         <div className="absolute right-5 top-6 z-50">
           <DropdownMenu>
             <DropdownMenuTrigger>
@@ -92,7 +110,7 @@ export default function PostCard({ post }: { post: Post }) {
               <DropdownMenuSeparator />
               <DropdownMenuItem>Share</DropdownMenuItem>
               <DropdownMenuItem>Report</DropdownMenuItem>
-              {user?.id === post.user_id && (
+              {currentUser?.id === post.user_id && (
                 <div onClick={() => post.id && deletePost(post.id)}>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-red-500 cursor-pointer">
@@ -104,15 +122,18 @@ export default function PostCard({ post }: { post: Post }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {/* Post content */}
         <Link
           href={`/p/${post?.id}`}
           passHref
           scroll={false}
           shallow={true}
           prefetch={true}>
+          {/* Author details */}
           <Image
             src={
-              user?.profile_picture ||
+              author?.profile_picture ||
               process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
             }
             alt="profile picture"
@@ -120,9 +141,11 @@ export default function PostCard({ post }: { post: Post }) {
             height={32}
             className="rounded-full inline-flex border border-border"
           />
-          <h2 className="inline-flex pl-2 font-black">{user?.username}</h2>
+          <h2 className="inline-flex pl-2 font-black">{author?.username}</h2>
           <Dot className="inline-flex" />
           <p className="inline-flex text-xs">{time}</p>
+
+          {/* Post content */}
           <p className="text-xl pt-3 pb-2">{post.content}</p>
           {post.media && (
             <Image
@@ -135,14 +158,15 @@ export default function PostCard({ post }: { post: Post }) {
           )}
         </Link>
 
-        <div className=" my-2 flex items-center justify-start pt-2 gap-4">
-          {/* Comment Icon and Count */}
+        {/* Interaction buttons */}
+        <div className="my-2 flex items-center justify-start pt-2 gap-4">
+          {/* Comment count */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FaRegComment className="cursor-pointer hover:text-primary" />
             <span>{post?.comment_count}</span>
           </div>
 
-          {/* Like Icon and Count */}
+          {/* Like button */}
           <div
             onClick={handleLike}
             className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
@@ -154,7 +178,7 @@ export default function PostCard({ post }: { post: Post }) {
             <span>{likeCount}</span>
           </div>
 
-          {/* Share Icon */}
+          {/* Share button */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
             <LuShare className="hover:text-primary hover:scale-110 transition-transform" />
           </div>
