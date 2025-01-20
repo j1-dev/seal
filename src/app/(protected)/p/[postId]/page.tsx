@@ -192,7 +192,7 @@ export default function PostPage() {
       <Separator />
 
       {/* Comment feed */}
-      <CommentFeed id={post?.id || ''} />
+      <CommentFeed postId={post?.id || ''} />
     </div>
   );
 }

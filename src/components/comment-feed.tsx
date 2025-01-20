@@ -9,28 +9,28 @@ import { Separator } from '@/components/ui/separator';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function CommendFeed({
-  id,
-}: // isPost,
-{
-  id: string;
-  // isPost: boolean;
+  postId,
+  commentId,
+}: {
+  postId: string;
+  commentId?: string;
 }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const supabase = createClient();
 
   useEffect(() => {
-    if (!id) return;
-    console.log('Fetching comments for post:', id);
+    if (!postId) return;
+    console.log('Fetching comments for post:', postId);
     const getComments = async () => {
-      const data = await getCommentsByPostId(id);
+      const data = await getCommentsByPostId(postId, commentId);
       setComments(data);
       setLoading(false);
     };
     getComments();
 
     const channel = supabase
-      .channel(`comments-feed-${id}`)
+      .channel(`comments-feed-${postId}`)
       .on(
         'postgres_changes',
         {
@@ -54,7 +54,7 @@ export default function CommendFeed({
           event: 'INSERT',
           schema: 'public',
           table: 'comments',
-          filter: `post_id=eq.${id}`,
+          filter: `post_id=eq.${postId}`,
         },
         (payload) => {
           console.log('New comment:', payload.new);
@@ -66,14 +66,14 @@ export default function CommendFeed({
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to comments updates: ', id);
+          console.log('Successfully subscribed to comments updates: ', postId);
         }
       });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, supabase]);
+  }, [postId, supabase]);
 
   return (
     <div>

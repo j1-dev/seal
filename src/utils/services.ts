@@ -123,8 +123,6 @@ export const getPostsWithCounts = async () => {
   }));
 };
 
-
-
 export const getPostById = async (id: string) => {
   const { data, error } = await supabase
     .from('posts')
@@ -222,7 +220,10 @@ export const getLikeCount = async (postId: string): Promise<number> => {
   return count || 0;
 };
 
-export const isPostLikedByUser = async (postId: string, userId: string): Promise<boolean> => {
+export const isPostLikedByUser = async (
+  postId: string,
+  userId: string
+): Promise<boolean> => {
   const { count, error } = await supabase
     .from('likes')
     .select('*', { count: 'exact', head: true })
@@ -245,14 +246,40 @@ export const createComment = async (comment: Comment) => {
   return data;
 };
 
-export const getCommentsByPostId = async (postId: string) => {
+export const getComment = async (commentId: string) => {
   const { data, error } = await supabase
     .from('comments')
     .select('*')
-    .eq('post_id', postId)
-    .order('created_at', { ascending: false });
+    .eq('id', commentId)
+    .single();
   if (error) throw error;
   return data;
+};
+
+export const getCommentsByPostId = async (
+  postId: string,
+  commentId?: string
+) => {
+  if (typeof commentId === 'undefined') {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('post_id', postId)
+      .is('parent_comment_id', null)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  }
+  {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('post_id', postId)
+      .eq('parent_comment_id', commentId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  }
 };
 
 export const deleteComment = async (id: string) => {
