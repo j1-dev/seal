@@ -269,8 +269,7 @@ export const getCommentsByPostId = async (
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
-  }
-  {
+  } else {
     const { data, error } = await supabase
       .from('comments')
       .select('*')
@@ -280,6 +279,28 @@ export const getCommentsByPostId = async (
     if (error) throw error;
     return data;
   }
+};
+
+export const getCommentThread = async (
+  parentCommentId: string,
+  postId: string
+) => {
+  const comments = [];
+  let commentId = parentCommentId;
+
+  while (commentId) {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('post_id', postId)
+      .eq('id', commentId)
+      .single();
+    if (error) throw error;
+    comments.push(data);
+    commentId = data.parent_comment_id;
+  }
+
+  return comments.reverse();
 };
 
 export const deleteComment = async (id: string) => {

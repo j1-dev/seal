@@ -11,6 +11,8 @@ import {
   createComment,
   getComment,
   getCommentLikeCount,
+  getCommentThread,
+  getPostById,
   getUserById,
   likeComment,
   unlikeComment,
@@ -23,6 +25,8 @@ import { Button } from '@/components/ui/button';
 import CommentFeed from '@/components/comment-feed';
 import TopBar from '@/components/tob-bar';
 import { useUser } from '@/utils/context/auth';
+import CommentCard from '@/components/comment-card';
+import PostCard from '@/components/post-card';
 
 const getLikedComments = () =>
   JSON.parse(localStorage.getItem('likedComments') || '[]');
@@ -45,7 +49,8 @@ const updateLikedComments = (commentId: string, isLiked: boolean) => {
 export default function CommentPage() {
   const { commentId } = useParams();
   const { user: currentUser } = useUser(); // Current user
-  const [post, setPost] = useState<Post | null>(null); // Parent post;
+  const [post, setPost] = useState<Post | null>(null); // Parent post
+  const [thread, setThread] = useState<Comment[]>([]); // Comment thread
   const [comment, setComment] = useState<Comment | null>(null); // Main comment
   const [author, setAuthor] = useState<User | null>(null); // Author of main comment
   const [time, setTime] = useState<string>('');
@@ -77,6 +82,21 @@ export default function CommentPage() {
 
     fetchData();
   }, [commentId]);
+
+  useEffect(() => {
+    const getCommentDependentData = async () => {
+      if (comment?.parent_comment_id !== '') {
+        const thread = await getCommentThread(
+          comment?.parent_comment_id as string,
+          comment?.post_id as string
+        );
+        setThread(thread);
+      }
+      const post = await getPostById(comment?.post_id as string);
+      setPost(post);
+    };
+    getCommentDependentData();
+  }, [comment]);
 
   // Handle like/unlike functionality
   const handleLike = async () => {
@@ -123,6 +143,17 @@ export default function CommentPage() {
     <div>
       <TopBar title="Comment" />
       <Separator />
+      {post && <PostCard post={post} />}
+      {thread && (
+        <div>
+          {thread.map((comment) => (
+            <div key={comment.id}>
+              <CommentCard comment={comment} />
+              <Separator />
+            </div>
+          ))}
+        </div>
+      )}
       {comment && (
         <>
           {/* Main comment */}
