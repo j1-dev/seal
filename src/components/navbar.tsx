@@ -18,31 +18,21 @@ import {
 } from 'react-icons/ri';
 import { cn } from '@/utils/utils';
 import { signOutAction } from '@/app/actions';
-import { createClient } from '@/utils/supabase/client';
-import { useEffect, useState } from 'react';
+import Logo from '@/components/logo';
+import { useUser } from '@/utils/context/auth';
 
 export function Navbar() {
   const pathname = usePathname();
-  const supabase = createClient();
-  const [id, setId] = useState('');
-
-  useEffect(() => {
-    const getUserId = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setId(user?.id || '');
-    };
-    getUserId();
-  }, []);
+  const { user } = useUser();
 
   return (
     <aside className="border-border fixed top-0 z-50 h-full w-40 border-r">
       <div className="container flex flex-col h-full items-end p-4">
         {/* Logo */}
         <div className="mb-4">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-5xl">Plaza</span>
+          <Link href="/" className="flex items-center gap-2 w-96 h-24 relative">
+            <Logo size={84} className="absolute right-28 top-1" />
+            <span className="font-black text-5xl absolute right-0 top-7">Seal</span>
           </Link>
         </div>
 
@@ -51,7 +41,7 @@ export function Navbar() {
           <Link
             href="/home"
             className={cn(
-              'transition-colors hover:text-foreground/80 py-1',
+              'transition-colors hover:text-foreground/80 pb-1',
               pathname === '/home' ? 'font-black' : 'font-normal'
             )}>
             <div className="inline-flex items-center gap-2">
@@ -94,7 +84,7 @@ export function Navbar() {
             </div>
           </Link>
           <Link
-            href={`/u/${id}`}
+            href={`/u/${user?.id}`}
             className={cn(
               'transition-colors hover:text-foreground/80 py-1',
               pathname?.startsWith('/u') ? 'font-black' : 'font-normal'

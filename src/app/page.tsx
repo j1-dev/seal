@@ -1,4 +1,5 @@
 'use client';
+import Logo from '@/components/logo';
 import { Marquee } from '@/components/marquee';
 import { useRouter } from 'next/navigation';
 
@@ -17,7 +18,7 @@ export default function Home() {
                      text-8xl font-black p-9 pt-[46px] transition-all 
                      hover:bg-transparent hover:dark:bg-transparent hover:dark:text-neutral-900 duration-1000 
                      cursor-wait group shadow hover:shadow-xl">
-          Plaza
+          <Logo size={500} />
         </div>
       </div>
       <Marquee>
