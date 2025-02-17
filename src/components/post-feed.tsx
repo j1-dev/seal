@@ -11,12 +11,6 @@ export default function Feed() {
   const supabase = createClient();
 
   useEffect(() => {
-    // const getPosts = async () => {
-    //   const data = await getAllPosts();
-    //   setPosts(data);
-    //   setLoading(false);
-    // };
-
     const getPosts = async () => {
       const data = await getPostsWithCounts();
       setPosts(data);

@@ -111,7 +111,7 @@ export const uploadProfilePic = async (file: File, userId: string) => {
   if (!squareBlob) {
     throw new Error('Failed to generate square image blob');
   }
-  
+
   // Replace the original file with the cropped square version
   file = new File([squareBlob], fileName, { type: file.type });
 
@@ -206,11 +206,15 @@ export const getPostById = async (id: string) => {
 export const getPostsByUserId = async (userId: string) => {
   const { data, error } = await supabase
     .from('posts')
-    .select('*')
+    .select('*,comments(count),likes(count)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data;
+  return data.map((post) => ({
+    ...post,
+    comment_count: post.comments[0].count,
+    like_count: post.likes[0].count,
+  }));
 };
 
 export const deletePost = async (id: string) => {

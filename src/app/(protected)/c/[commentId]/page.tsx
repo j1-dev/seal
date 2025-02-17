@@ -28,19 +28,23 @@ import { useUser } from '@/utils/context/auth';
 import CommentCard from '@/components/comment-card';
 import PostCard from '@/components/post-card';
 
-const getLikedComments = () =>
-  JSON.parse(localStorage.getItem('likedComments') || '[]');
+const getLikedComments = (userId: string) =>
+  JSON.parse(localStorage.getItem(`likedComments_${userId}`) || '[]');
 
-const updateLikedComments = (commentId: string, isLiked: boolean) => {
-  const likedComments = getLikedComments();
+const updateLikedComments = (
+  userId: string,
+  commentId: string,
+  isLiked: boolean
+) => {
+  const likedComments = getLikedComments(userId);
   if (isLiked) {
     localStorage.setItem(
-      'likedComments',
+      `likedComments_${userId}`,
       JSON.stringify([...likedComments, commentId])
     );
   } else {
     localStorage.setItem(
-      'likedComments',
+      `likedComments_${userId}`,
       JSON.stringify(likedComments.filter((id: string) => id !== commentId))
     );
   }
@@ -76,7 +80,7 @@ export default function CommentPage() {
       const count = await getCommentLikeCount(mainComment.id);
       setLikeCount(count || 0);
 
-      const likedComments = getLikedComments();
+      const likedComments = getLikedComments(currentUser?.id || '');
       setLiked(likedComments.includes(mainComment.id));
     };
 
@@ -84,7 +88,9 @@ export default function CommentPage() {
   }, [commentId]);
 
   useEffect(() => {
+    if (!comment) return;
     const getCommentDependentData = async () => {
+      console.log(comment);
       if (comment?.parent_comment_id !== '') {
         const thread = await getCommentThread(
           comment?.parent_comment_id as string,
@@ -92,7 +98,7 @@ export default function CommentPage() {
         );
         setThread(thread);
       }
-      const post = await getPostById(comment?.post_id as string);
+      const post = await getPostById(comment?.post_id || '');
       setPost(post);
     };
     getCommentDependentData();
@@ -105,14 +111,14 @@ export default function CommentPage() {
     if (liked) {
       const success = await unlikeComment(comment.id, currentUser.id);
       if (success) {
-        updateLikedComments(comment.id, false);
+        updateLikedComments(currentUser?.id || '', comment.id, false);
         setLikeCount((prev) => Math.max(prev - 1, 0));
         setLiked(false);
       }
     } else {
       const success = await likeComment(comment.id, currentUser.id);
       if (success) {
-        updateLikedComments(comment.id, true);
+        updateLikedComments(currentUser?.id || '', comment.id, true);
         setLikeCount((prev) => prev + 1);
         setLiked(true);
       }

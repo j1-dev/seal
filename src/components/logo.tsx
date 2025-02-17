@@ -18,6 +18,7 @@ const Logo: React.FC<LogoProps> = ({ size, className }) => {
       width={size}
       height={size}
       className={`${className} ${isDarkMode ? 'invert' : ''}`}
+      suppressHydrationWarning
     />
   );
 };
