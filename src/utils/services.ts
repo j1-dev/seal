@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database, Post, User, Comment } from '@/utils/types';
-import { v4 as uuidv4 } from 'uuid';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -81,12 +80,44 @@ export const deleteUser = async (id: string) => {
 
 export const uploadProfilePic = async (file: File, userId: string) => {
   const fileExt = file.name.split('.').pop();
-  const fileName = `${uuidv4()}.${fileExt}`;
+  const fileName = `profile_pic.${fileExt}`;
   const filePath = `${userId}/${fileName}`;
+
+  // Convert the image to a square by cropping the center
+  const imageBitmap = await createImageBitmap(file);
+  const size = Math.min(imageBitmap.width, imageBitmap.height);
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Canvas 2D context not available');
+  }
+  ctx.drawImage(
+    imageBitmap,
+    (imageBitmap.width - size) / 2,
+    (imageBitmap.height - size) / 2,
+    size,
+    size,
+    0,
+    0,
+    size,
+    size
+  );
+
+  const squareBlob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, file.type)
+  );
+  if (!squareBlob) {
+    throw new Error('Failed to generate square image blob');
+  }
+  
+  // Replace the original file with the cropped square version
+  file = new File([squareBlob], fileName, { type: file.type });
 
   const { error: uploadError } = await supabase.storage
     .from('profile-pics')
-    .upload(filePath, file, { cacheControl: '3600', upsert: false });
+    .update(filePath, file, { cacheControl: '3600', upsert: false });
 
   if (uploadError) throw uploadError;
 

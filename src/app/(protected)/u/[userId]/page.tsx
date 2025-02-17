@@ -97,13 +97,16 @@ export default function UserPage() {
       const target = event.target as HTMLInputElement;
       if (target.files && target.files[0]) {
         const file = target.files[0];
-        console.log(file);
         try {
           const newProfilePicUrl = await uploadProfilePic(
             file,
             userId as string
           );
-          setUser(user ? { ...user, profile_picture: newProfilePicUrl } : null);
+          setUser(
+            user
+              ? { ...user, profile_picture: newProfilePicUrl.profile_picture }
+              : null
+          );
           toast('Profile picture updated successfully!');
         } catch (error) {
           console.error('Error uploading profile picture:', error);
