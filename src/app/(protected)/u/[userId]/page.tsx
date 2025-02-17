@@ -18,6 +18,7 @@ import PostCard from '@/components/post-card';
 import { useUser } from '@/utils/context/auth';
 import { FaCheck } from 'react-icons/fa6';
 import { toast } from 'sonner';
+import { uploadProfilePic } from '@/utils/services';
 
 export default function UserPage() {
   const { userId } = useParams();
@@ -88,6 +89,31 @@ export default function UserPage() {
       );
   };
 
+  const handleChangeProfilePic = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
+        const file = target.files[0];
+        console.log(file);
+        try {
+          const newProfilePicUrl = await uploadProfilePic(
+            file,
+            userId as string
+          );
+          setUser(user ? { ...user, profile_picture: newProfilePicUrl } : null);
+          toast('Profile picture updated successfully!');
+        } catch (error) {
+          console.error('Error uploading profile picture:', error);
+          toast('Failed to upload profile picture. Please try again.');
+        }
+      }
+    };
+    input.click();
+  };
+
   return (
     <div>
       {loading ? (
@@ -108,7 +134,12 @@ export default function UserPage() {
               alt="Profile Picture"
               height={128}
               width={128}
-              className="rounded-3xl mt-4"
+              className={`rounded-3xl mt-4 transition-all ${
+                editMode ? 'hover:opacity-80 cursor-pointer' : ''
+              }`}
+              onClick={() => {
+                if (editMode) handleChangeProfilePic();
+              }}
             />
             <span className="text-xl font-bold inline-flex items-center">
               {!editMode ? (

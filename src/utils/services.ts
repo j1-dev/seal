@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database, Post, User, Comment } from '@/utils/types';
+import { v4 as uuidv4 } from 'uuid';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -27,7 +28,8 @@ export const getUserById = async (id: string) => {
   return data;
 };
 
-export const getUserStatsById = async (id: string) => { // this shit is killing me
+export const getUserStatsById = async (id: string) => {
+  // this shit is killing me
   const { data, error } = await supabase
     .from('users')
     .select(
@@ -37,14 +39,14 @@ export const getUserStatsById = async (id: string) => { // this shit is killing 
       friendships:friendships!friendships_user_id_1_fkey(count),
       likes:posts!inner(id, likes(count))
     `
-    ) // this shit killed me 
+    ) // this shit killed me
     .eq('id', id)
     .single();
 
   if (error) throw error;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {posts, friendships, likes,...user} = data; 
+  const { posts, friendships, likes, ...user } = data;
   const postCount = data.posts[0].count;
   const friendCount = data.friendships[0].count;
   const likeCount: number = data.likes.reduce(
@@ -75,6 +77,35 @@ export const updateUser = async (user: User | null) => {
 export const deleteUser = async (id: string) => {
   const { error } = await supabase.from('users').delete().eq('id', id);
   if (error) throw error;
+};
+
+export const uploadProfilePic = async (file: File, userId: string) => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${uuidv4()}.${fileExt}`;
+  const filePath = `${userId}/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('profile-pics')
+    .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) throw uploadError;
+
+  const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+    .from('profile-pics')
+    .createSignedUrl(filePath, 60 * 60 * 24 * 7); // URL valid for 7 days
+
+  if (signedUrlError) throw signedUrlError;
+
+  const { data: userData, error: updateError } = await supabase
+    .from('users')
+    .update({ profile_picture: signedUrlData.signedUrl })
+    .eq('id', userId)
+    .select('*')
+    .single();
+
+  if (updateError) throw updateError;
+
+  return userData;
 };
 
 // --- Post Services ---
