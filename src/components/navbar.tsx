@@ -31,8 +31,10 @@ export function Navbar() {
         {/* Logo */}
         <div className="mb-4">
           <Link href="/" className="flex items-center gap-2 w-96 h-24 relative">
-            <Logo size={84} className="absolute right-28 top-1" />
-            <span className="font-black text-5xl absolute right-0 top-7">Seal</span>
+            <Logo size={84} className={'absolute right-28 top-1'} />
+            <span className="font-black text-5xl absolute right-0 top-7">
+              Seal
+            </span>
           </Link>
         </div>
 

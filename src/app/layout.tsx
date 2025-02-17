@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,14 +28,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-          <ThemeProvider defaultTheme="system" attribute="class" enableSystem>
-            <div className="relative flex min-h-svh flex-col bg-background">
-              {children}
-            </div>
-            <div className="z-50 fixed bottom-5 right-5">
-              <ThemeSwitcher />
-            </div>
-          </ThemeProvider>
+        <ThemeProvider defaultTheme="system" attribute="class" enableSystem>
+          <div className="relative flex min-h-svh flex-col bg-background">
+            {children}
+          </div>
+          <div className="z-50 fixed bottom-5 right-5">
+            <ThemeSwitcher />
+          </div>
+        </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );

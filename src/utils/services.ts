@@ -27,7 +27,7 @@ export const getUserById = async (id: string) => {
   return data;
 };
 
-export const getUserStatsById = async (id: string) => {
+export const getUserStatsById = async (id: string) => { // this shit is killing me
   const { data, error } = await supabase
     .from('users')
     .select(
@@ -37,13 +37,14 @@ export const getUserStatsById = async (id: string) => {
       friendships:friendships!friendships_user_id_1_fkey(count),
       likes:posts!inner(id, likes(count))
     `
-    )
+    ) // this shit killed me 
     .eq('id', id)
     .single();
 
   if (error) throw error;
 
-  const user = data;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const {posts, friendships, likes,...user} = data; 
   const postCount = data.posts[0].count;
   const friendCount = data.friendships[0].count;
   const likeCount: number = data.likes.reduce(
@@ -60,14 +61,11 @@ export const getUserStatsById = async (id: string) => {
   };
 };
 
-export const updateUser = async (
-  id: string,
-  updates: Partial<Database['public']['Tables']['Users']['Row']>
-) => {
+export const updateUser = async (user: User | null) => {
   const { data, error } = await supabase
     .from('users')
-    .update(updates)
-    .eq('id', id)
+    .update(user)
+    .eq('id', user?.id)
     .select('*')
     .single();
   if (error) throw error;

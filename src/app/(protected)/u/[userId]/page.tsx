@@ -5,17 +5,24 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { FaPaintBrush } from 'react-icons/fa';
 
-import { getPostsByUserId, getUserStatsById } from '@/utils/services';
+import {
+  getPostsByUserId,
+  getUserStatsById,
+  updateUser,
+} from '@/utils/services';
 import { Post, User } from '@/utils/types';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Separator } from '@/components/ui/separator';
 import TopBar from '@/components/tob-bar';
 import PostCard from '@/components/post-card';
 import { useUser } from '@/utils/context/auth';
+import { FaCheck } from 'react-icons/fa6';
+import { toast } from 'sonner';
 
 export default function UserPage() {
   const { userId } = useParams();
   const { user: currentUser } = useUser(); // Get the current logged-in user's ID
+
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingPosts, setLoadingPosts] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
@@ -72,6 +79,15 @@ export default function UserPage() {
     setShowEditButton(currentUser.id === userId);
   }, [currentUser, userId]);
 
+  const handleSave = () => {
+    console.log(user);
+    updateUser(user)
+      .then(() => setEditMode(!editMode))
+      .catch(() =>
+        toast('A user with that name already exists, try another one!')
+      );
+  };
+
   return (
     <div>
       {loading ? (
@@ -95,14 +111,49 @@ export default function UserPage() {
               className="rounded-3xl mt-4"
             />
             <span className="text-xl font-bold inline-flex items-center">
-              {user?.username}
-              {showEditButton && (
-                <FaPaintBrush
-                  className="ml-2 transition-colors hover:text-foreground/80 cursor-pointer"
-                  onClick={() => setEditMode(!editMode)}
+              {!editMode ? (
+                user?.username
+              ) : (
+                <input
+                  maxLength={15}
+                  className="w-40"
+                  value={user?.username}
+                  onChange={(e) => {
+                    setUser(
+                      user ? { ...user, username: e.target.value } : null
+                    );
+                  }}
                 />
               )}
+              {showEditButton && (
+                <div>
+                  {!editMode ? (
+                    <FaPaintBrush
+                      className="ml-2 transition-colors hover:text-foreground/80 cursor-pointer"
+                      onClick={() => setEditMode(!editMode)}
+                    />
+                  ) : (
+                    <FaCheck
+                      className="ml-2 transition-colors hover:text-foreground/80 cursor-pointer"
+                      onClick={() => handleSave()}
+                    />
+                  )}
+                </div>
+              )}
             </span>
+            <div>
+              {!editMode ? (
+                user?.bio
+              ) : (
+                <input
+                  className="w-40"
+                  value={user?.bio || ''}
+                  onChange={(e) => {
+                    setUser(user ? { ...user, bio: e.target.value } : null);
+                  }}
+                />
+              )}
+            </div>
             <div className="grid grid-cols-3 grid-rows-2 items-center gap-2 text-center mb-4">
               <span className="text-lg font-bold">Posts</span>
               <span className="text-lg font-bold">Friends</span>
