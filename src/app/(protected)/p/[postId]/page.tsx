@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import CommentFeed from '@/components/comment-feed';
 import TopBar from '@/components/tob-bar';
 import { useUser } from '@/utils/context/auth';
+import Link from 'next/link';
 
 const getLikedPosts = (userId: string) =>
   JSON.parse(localStorage.getItem(`likedPosts_${userId}`) || '[]');
@@ -123,19 +124,23 @@ export default function PostPage() {
       <Separator />
       <div className="mx-4 my-2">
         {/* Author information */}
-        <Image
-          src={
-            author?.profile_picture ||
-            process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
-          }
-          alt="profile picture"
-          width={48}
-          height={48}
-          className="rounded-full inline-flex border border-border"
-        />
-        <p className="inline-flex pl-4 font-semibold">{author?.username}</p>
-        <Dot className="inline-flex" />
-        <p className="inline-flex text-xs">{time}</p>
+        <Link href={`/u/${author?.id}`}>
+          <Image
+            src={
+              author?.profile_picture ||
+              process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
+            }
+            alt="profile picture"
+            width={48}
+            height={48}
+            className="rounded-full inline-flex border border-border"
+          />
+          <p className="inline-flex pl-4 font-semibold hover:underline">
+            {author?.username}
+          </p>
+          <Dot className="inline-flex" />
+          <p className="inline-flex text-xs">{time}</p>
+        </Link>
       </div>
 
       {/* Post content */}

@@ -313,36 +313,58 @@ export const createComment = async (comment: Comment) => {
 export const getComment = async (commentId: string) => {
   const { data, error } = await supabase
     .from('comments')
-    .select('*')
+    .select(
+      `
+      *,
+      replies: comments(count)
+      `
+    )
     .eq('id', commentId)
     .single();
   if (error) throw error;
-  return data;
+
+  // Access count of replies for the comment
+  const comment_count = data.replies?.[0]?.count ?? 0;
+
+  return {
+    ...data,
+    comment_count,
+  };
 };
 
 export const getCommentsByPostId = async (
   postId: string,
   commentId?: string
 ) => {
+  // Adjusted query to join the count of likes and replies (child comments)
+  let query = supabase
+    .from('comments')
+    .select(
+      `
+      *,
+      likes:comment-likes(count),
+      comments:comments(count)
+    `
+    )
+    .eq('post_id', postId)
+    .order('created_at', { ascending: false });
+
   if (typeof commentId === 'undefined') {
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('post_id', postId)
-      .is('parent_comment_id', null)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data;
+    query = query.is('parent_comment_id', null);
   } else {
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('post_id', postId)
-      .eq('parent_comment_id', commentId)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data;
+    query = query.eq('parent_comment_id', commentId);
   }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  // Map each comment to include like_count and comment_count based on the joined data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((comment: any) => ({
+    ...comment,
+    like_count: comment.likes?.[0]?.count ?? 0,
+    comment_count: comment.comments?.[0]?.count ?? 0,
+  }));
 };
 
 export const getCommentThread = async (
@@ -446,9 +468,30 @@ export const updateFriendshipStatus = async (
   return data;
 };
 
-export const deleteFriendship = async (id: string) => {
-  const { error } = await supabase.from('friendships').delete().eq('id', id);
+export const deleteFriendship = async (
+  user_id_1: string,
+  user_id_2: string
+) => {
+  const { error } = await supabase
+    .from('friendships')
+    .delete()
+    .eq('user_id_1', user_id_1)
+    .eq('user_id_2', user_id_2);
   if (error) throw error;
+};
+
+export const friendshipExists = async (
+  userId1: string,
+  userId2: string
+): Promise<boolean> => {
+  const { count, error } = await supabase
+    .from('friendships')
+    .select('*', { count: 'exact', head: true })
+    .or(`user_id_1.eq.${userId1},user_id_2.eq.${userId1}`)
+    .or(`user_id_1.eq.${userId2},user_id_2.eq.${userId2}`); // Check both ways
+
+  if (error) throw error;
+  return (count ?? 0) > 0;
 };
 
 // --- Message Services ---

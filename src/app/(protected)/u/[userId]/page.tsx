@@ -3,20 +3,23 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { FaPaintBrush } from 'react-icons/fa';
-
+import { FaPaintBrush, FaUserFriends } from 'react-icons/fa';
 import {
+  createFriendship,
   getPostsByUserId,
   getUserStatsById,
   updateUser,
+  friendshipExists,
+  deleteFriendship,
 } from '@/utils/services';
-import { Post, User } from '@/utils/types';
+import { Friendship, Post, User } from '@/utils/types';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Separator } from '@/components/ui/separator';
 import TopBar from '@/components/tob-bar';
 import PostCard from '@/components/post-card';
 import { useUser } from '@/utils/context/auth';
 import { FaCheck } from 'react-icons/fa6';
+import { RxCross2 } from 'react-icons/rx';
 import { toast } from 'sonner';
 import { uploadProfilePic } from '@/utils/services';
 
@@ -33,6 +36,7 @@ export default function UserPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [showEditButton, setShowEditButton] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
+  const [friendship, setFriendship] = useState<boolean>(false);
 
   // Fetch user statistics
   useEffect(() => {
@@ -78,10 +82,12 @@ export default function UserPage() {
     if (!currentUser || !userId) return;
 
     setShowEditButton(currentUser.id === userId);
+    friendshipExists(currentUser?.id, userId as string).then((res) =>
+      setFriendship(res)
+    );
   }, [currentUser, userId]);
 
   const handleSave = () => {
-    console.log(user);
     updateUser(user)
       .then(() => setEditMode(!editMode))
       .catch(() =>
@@ -115,6 +121,21 @@ export default function UserPage() {
       }
     };
     input.click();
+  };
+
+  const handleFriendship = async () => {
+    const newFriendship: Friendship = {
+      user_id_1: currentUser?.id || '',
+      user_id_2: userId as string,
+      status: 'pending',
+    };
+    createFriendship(newFriendship);
+    setFriendship(true);
+  };
+
+  const handleDeleteFriendship = async () => {
+    deleteFriendship(currentUser!.id, userId as string);
+    setFriendship(false);
   };
 
   return (
@@ -159,7 +180,7 @@ export default function UserPage() {
                   }}
                 />
               )}
-              {showEditButton && (
+              {showEditButton ? (
                 <div>
                   {!editMode ? (
                     <FaPaintBrush
@@ -170,6 +191,20 @@ export default function UserPage() {
                     <FaCheck
                       className="ml-2 transition-colors hover:text-foreground/80 cursor-pointer"
                       onClick={() => handleSave()}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div>
+                  {!friendship ? (
+                    <FaUserFriends
+                      className="ml-2 transition-colors hover:text-foreground/80 cursor-pointer"
+                      onClick={() => handleFriendship()}
+                    />
+                  ) : (
+                    <RxCross2
+                      className="ml-2 transition-colors hover:text-foreground/80 cursor-pointer"
+                      onClick={() => handleDeleteFriendship()}
                     />
                   )}
                 </div>

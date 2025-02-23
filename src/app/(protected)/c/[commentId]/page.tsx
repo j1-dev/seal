@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { FaHeart, FaRegHeart } from 'react-icons/fa6';
+import { FaHeart, FaRegComment, FaRegHeart } from 'react-icons/fa6';
 import { LuShare } from 'react-icons/lu';
 import { Dot } from 'lucide-react';
 
@@ -27,6 +27,7 @@ import TopBar from '@/components/tob-bar';
 import { useUser } from '@/utils/context/auth';
 import CommentCard from '@/components/comment-card';
 import PostCard from '@/components/post-card';
+import Link from 'next/link';
 
 const getLikedComments = (userId: string) =>
   JSON.parse(localStorage.getItem(`likedComments_${userId}`) || '[]');
@@ -164,24 +165,33 @@ export default function CommentPage() {
         <>
           {/* Main comment */}
           <div className="mx-4 my-2">
-            <Image
-              src={
-                author?.profile_picture ||
-                process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
-              }
-              alt="profile picture"
-              width={48}
-              height={48}
-              className="rounded-full inline-flex border border-border"
-            />
-            <p className="inline-flex pl-4 font-semibold">{author?.username}</p>
-            <Dot className="inline-flex" />
-            <p className="inline-flex text-xs">{time}</p>
+            <Link href={`/u/${author?.id}`}>
+              <Image
+                src={
+                  author?.profile_picture ||
+                  process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
+                }
+                alt="profile picture"
+                width={48}
+                height={48}
+                className="rounded-full inline-flex border border-border"
+              />
+              <p className="inline-flex pl-4 font-semibold hover:underline">
+                {author?.username}
+              </p>
+              <Dot className="inline-flex" />
+              <p className="inline-flex text-xs">{time}</p>
+            </Link>
           </div>
           <p className="text-xl pt-3 pb-2 mx-4 my-2">{comment?.content}</p>
 
           {/* Interaction buttons */}
           <div className="mx-4 my-2 flex items-center justify-between pt-2 gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <FaRegComment className="cursor-pointer hover:text-primary" />
+              <span>{comment?.comment_count}</span>
+            </div>
+
             <div
               onClick={handleLike}
               className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">

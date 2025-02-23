@@ -10,7 +10,7 @@ CREATE TABLE Users (
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
-) USING orioledb;
+) 
 
 -- --- Posts Table ---
 CREATE TABLE Posts (
@@ -18,7 +18,7 @@ CREATE TABLE Posts (
     user_id UUID REFERENCES Users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
-) USING orioledb;
+) 
 
 -- --- Comments Table ---
 CREATE TABLE Comments (
@@ -27,7 +27,7 @@ CREATE TABLE Comments (
     user_id UUID REFERENCES Users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
-) USING orioledb;
+) 
 
 -- --- Reactions Table ---
 CREATE TABLE Reactions (
@@ -37,7 +37,7 @@ CREATE TABLE Reactions (
     comment_id UUID REFERENCES Comments(id) ON DELETE CASCADE,
     type TEXT CHECK (type IN ('heart')) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
-) USING orioledb;
+) 
 
 -- --- Friendships Table ---
 CREATE TABLE Friendships (
@@ -46,7 +46,7 @@ CREATE TABLE Friendships (
     user_two_id UUID REFERENCES Users(id) ON DELETE CASCADE,
     status TEXT CHECK (status IN ('pending', 'accepted')) DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT now()
-) USING orioledb;
+)
 
 -- --- Messages Table ---
 CREATE TABLE Messages (
@@ -55,7 +55,7 @@ CREATE TABLE Messages (
     receiver_id UUID REFERENCES Users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
-) USING orioledb;
+)
 
 -- --- Notifications Table ---
 CREATE TABLE Notifications (
@@ -64,7 +64,7 @@ CREATE TABLE Notifications (
     content TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT now()
-) USING orioledb;
+) 
 
 -- Populate sample data
 INSERT INTO Users (username, email, password_hash) VALUES

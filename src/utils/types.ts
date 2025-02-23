@@ -50,7 +50,7 @@ type Friendship = {
   user_id_1: UUID;
   user_id_2: UUID;
   status: 'pending' | 'accepted';
-  created_at: string;
+  created_at?: string;
 };
 
 type Message = {

@@ -62,7 +62,6 @@ export default function CommentCard({ comment }: { comment: Comment }) {
 
   useEffect(() => {
     if (!currentUser) return;
-
     const fetchData = async () => {
       // Fetch author details
       const authorData = await getUserById(comment.user_id);
@@ -134,19 +133,23 @@ export default function CommentCard({ comment }: { comment: Comment }) {
         shallow={true}
         prefetch={true}>
         {/* Author details */}
-        <Image
-          src={
-            author?.profile_picture ||
-            process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
-          }
-          alt="profile picture"
-          width={32}
-          height={32}
-          className="rounded-full inline-flex border border-border"
-        />
-        <h2 className="inline-flex pl-2 font-black">{author?.username}</h2>
-        <Dot className="inline-flex" />
-        <p className="inline-flex text-xs">{time}</p>
+        <Link href={`/u/${author?.id}`}>
+          <Image
+            src={
+              author?.profile_picture ||
+              process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
+            }
+            alt="profile picture"
+            width={32}
+            height={32}
+            className="rounded-full inline-flex border border-border"
+          />
+          <h2 className="inline-flex pl-2 font-black hover:underline">
+            {author?.username}
+          </h2>
+          <Dot className="inline-flex" />
+          <p className="inline-flex text-xs">{time}</p>
+        </Link>
 
         {/* Comment text */}
         <p className="text-xl pt-3 pb-2">{comment.content}</p>
