@@ -1,19 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useUser } from '@/utils/context/auth';
 import { createPost } from '@/utils/services';
-import { createClient } from '@/utils/supabase/client';
 import { Post } from '@/utils/types';
 import { useState } from 'react';
 
 export function Sendbox() {
   const [content, setContent] = useState<string>('');
   const [disabled, setDisabled] = useState<boolean>(false);
-  const supabase = createClient();
-  const user = supabase.auth.getUser();
+  const { user } = useUser();
 
   const constructPost = async (content: string): Promise<Post> => {
-    console.log(await user);
-    const user_id = (await user).data.user?.id || '';
+    const user_id = user?.id || '';
     const post: Post = {
       content,
       user_id,

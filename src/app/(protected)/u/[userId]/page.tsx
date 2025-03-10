@@ -125,8 +125,8 @@ export default function UserPage() {
 
   const handleFriendship = async () => {
     const newFriendship: Friendship = {
-      user_id_1: currentUser?.id || '',
-      user_id_2: userId as string,
+      sender_id: currentUser?.id || '',
+      receiver_id: userId as string,
       status: 'pending',
     };
     createFriendship(newFriendship);
@@ -232,6 +232,7 @@ export default function UserPage() {
               <span className="text-lg">{likeCount}</span>
             </div>
           </div>
+
           <Separator />
 
           {/* User posts */}

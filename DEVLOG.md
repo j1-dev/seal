@@ -1,25 +1,31 @@
 # Seal Devlog
 
-
-
 ## IN PROCESS
-- Friendships
 
+- Rework liking system so that it doesn't depend on localStorage
 
 ## TO-DO
+
 - Images on Posts
 - Discover page
-- Clean up `service.ts` techical debt
-- Realtime feed that shows friends posts
+- Clean up `service.ts`
 - Chats
-- Rework liking system so that it doesn't depend on localStorage
-- Notifications
 - Restyle comment thread (more compact)
 - Work on responsiveness
 - Settings page
 
+## 10/03/2025
+
+- Friendships v0
+- Friendship Notifications v0
+- Notifications v0
+- user_id_1 -> sender_id, user_id_2 -> receiver_id
+- Realtime feed that shows friends posts
+
+
 
 ## < 19/02/2025
+
 - **Project Initialization**
 - **Database Setup**
 - **Basic Features**
@@ -36,4 +42,3 @@
   - Created function that fetches the comment thread between a comment and the Post its refering to
   - Profile view with editable fields (name, bio)
   - Profile picture can be changed
-

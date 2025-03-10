@@ -1,5 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
-import { Database, Post, User, Comment } from '@/utils/types';
+import {
+  createClient,
+  RealtimePostgresDeletePayload,
+  RealtimePostgresInsertPayload,
+  RealtimePostgresUpdatePayload,
+} from '@supabase/supabase-js';
+import { Database, Post, User, Comment, Like } from '@/utils/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -28,37 +33,67 @@ export const getUserById = async (id: string) => {
 };
 
 export const getUserStatsById = async (id: string) => {
-  // this shit is killing me
   const { data, error } = await supabase
     .from('users')
     .select(
       `
-      *,
-      posts:posts(count),
-      friendships:friendships!friendships_user_id_1_fkey(count),
-      likes:posts!inner(id, likes(count))
-    `
-    ) // this shit killed me
+        *,
+        posts:posts(count), 
+        friendships_sent:accepted_friendships!friendships_sender_id_fkey(count),
+        friendships_received:accepted_friendships!friendships_receiver_id_fkey(count),
+        likes:posts!inner(id, likes(count))
+      `
+    )
     .eq('id', id)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  console.log(data);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { posts, friendships, likes, ...user } = data;
-  const postCount = data.posts[0].count;
-  const friendCount = data.friendships[0].count;
-  const likeCount: number = data.likes.reduce(
+  if (!data) {
+    const { data, error } = await supabase
+      .from('users')
+      .select(
+        `
+        *,
+        friendships_sent:accepted_friendships!friendships_sender_id_fkey(count),
+        friendships_received:accepted_friendships!friendships_receiver_id_fkey(count)
+      `
+      )
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new Error('User not found');
+
+    const { friendships_sent, friendships_received, ...user } = data;
+
+    const friendCount =
+      friendships_sent[0].count + friendships_received[0].count;
+
+    return {
+      user: user,
+      postCount: 0,
+      friendCount: friendCount || 0,
+      likeCount: 0,
+    };
+  }
+
+  const { posts, friendships_sent, friendships_received, likes, ...user } =
+    data;
+  const postCount = posts[0].count;
+  const friendCount = friendships_sent[0].count + friendships_received[0].count;
+  const likeCount: number = likes.reduce(
     (acc: number, post: { likes: { count: number }[] }) =>
       acc + post.likes[0].count,
     0
   );
 
   return {
-    user,
-    postCount,
-    friendCount,
-    likeCount,
+    user: user,
+    postCount: postCount || 0,
+    friendCount: friendCount || 0,
+    likeCount: likeCount || 0,
   };
 };
 
@@ -123,7 +158,7 @@ export const uploadProfilePic = async (file: File, userId: string) => {
 
   const { data: signedUrlData, error: signedUrlError } = await supabase.storage
     .from('profile-pics')
-    .createSignedUrl(filePath, 60 * 60 * 24 * 7); // URL valid for 7 days
+    .createSignedUrl(filePath, 60 * 60 * 24 * 1e6); // URL valid for 1e6 days
 
   if (signedUrlError) throw signedUrlError;
 
@@ -178,9 +213,143 @@ export const getPostsWithCounts = async () => {
 
   return data.map((post) => ({
     ...post,
-    comment_count: post.comments[0].count,
-    like_count: post.likes[0].count,
+    comment_count: post.comments[0].count || 0,
+    like_count: post.likes[0].count || 0,
   }));
+};
+
+export const getFeedPosts = async (userId: string) => {
+  const friendsList = await getUserFriendships(userId);
+  if (friendsList.length === 0) return [];
+  friendsList.push(userId); // Include the user's own posts
+
+  // Fetch posts from friends with embedded comment and like counts
+  const { data, error } = await supabase
+    .from('posts')
+    .select(
+      `
+      *,
+      comments(count),
+      likes(count)
+    `
+    )
+    .in('user_id', friendsList)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  if (!data) return [];
+
+  // Extract the post IDs to check which ones the user has liked
+  const postIds = (data as Post[]).map((post) => post.id);
+
+  // Query likes for the current user on these posts
+  const { data: likesData, error: likesError } = await supabase
+    .from('likes')
+    .select('post_id')
+    .eq('user_id', userId)
+    .in('post_id', postIds);
+
+  if (likesError) throw likesError;
+
+  const likedPostIds = new Set(likesData.map((like) => like.post_id));
+
+  // Return posts with the extra field "liked_by_user"
+  return data.map((post) => ({
+    ...post,
+    comment_count: post.comments?.[0]?.count || 0,
+    like_count: post.likes?.[0]?.count || 0,
+    liked_by_user: likedPostIds.has(post.id),
+  }));
+};
+
+export const subscribeToFeedUpdates = async (
+  userId: string,
+  onUpdate: (update: {
+    type: string;
+    payload:
+      | RealtimePostgresUpdatePayload<Post | Like>
+      | RealtimePostgresInsertPayload<Post | Like>
+      | RealtimePostgresDeletePayload<Post | Like>;
+  }) => void
+): Promise<() => void> => {
+  const friendIds = await getUserFriendships(userId);
+  if (friendIds.length === 0) {
+    // No friends means no subscriptions needed.
+    return () => {};
+  }
+
+  const postsChannel = supabase
+    .channel('posts_subscription')
+    .on<Post>(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'posts',
+        filter: `user_id=in.(${friendIds.join(',')})`,
+      },
+      (payload) => {
+        onUpdate({ type: 'POST_INSERT', payload: payload });
+      }
+    )
+    .on<Post>(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'posts',
+        filter: `user_id=in.(${friendIds.join(',')})`,
+      },
+      (payload) => {
+        onUpdate({ type: 'POST_UPDATE', payload: payload });
+      }
+    )
+    .on<Post>(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'posts',
+        filter: `user_id=in.(${friendIds.join(',')})`,
+      },
+      (payload) => {
+        onUpdate({ type: 'POST_DELETE', payload: payload });
+      }
+    );
+  postsChannel.subscribe();
+
+  const likesChannel = supabase
+    .channel('likes_subscription')
+    .on<Like>(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'likes',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        onUpdate({ type: 'LIKE_INSERT', payload: payload });
+      }
+    )
+    .on<Like>(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'likes',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        onUpdate({ type: 'LIKE_DELETE', payload: payload });
+      }
+    );
+  likesChannel.subscribe();
+
+  return () => {
+    postsChannel.unsubscribe();
+    likesChannel.unsubscribe();
+  };
 };
 
 export const getPostById = async (id: string) => {
@@ -455,13 +624,15 @@ export const createFriendship = async (
 };
 
 export const updateFriendshipStatus = async (
-  id: string,
+  sender_id: string,
+  receiver_id: string,
   status: 'pending' | 'accepted'
 ) => {
   const { data, error } = await supabase
     .from('friendships')
     .update({ status })
-    .eq('id', id)
+    .eq('sender_id', sender_id)
+    .eq('receiver_id', receiver_id)
     .select('*')
     .single();
   if (error) throw error;
@@ -469,14 +640,14 @@ export const updateFriendshipStatus = async (
 };
 
 export const deleteFriendship = async (
-  user_id_1: string,
-  user_id_2: string
+  sender_id: string,
+  receiver_id: string
 ) => {
   const { error } = await supabase
     .from('friendships')
     .delete()
-    .eq('user_id_1', user_id_1)
-    .eq('user_id_2', user_id_2);
+    .eq('sender_id', sender_id)
+    .eq('receiver_id', receiver_id);
   if (error) throw error;
 };
 
@@ -487,11 +658,28 @@ export const friendshipExists = async (
   const { count, error } = await supabase
     .from('friendships')
     .select('*', { count: 'exact', head: true })
-    .or(`user_id_1.eq.${userId1},user_id_2.eq.${userId1}`)
-    .or(`user_id_1.eq.${userId2},user_id_2.eq.${userId2}`); // Check both ways
+    .or(`sender_id.eq.${userId1},receiver_id.eq.${userId1}`)
+    .or(`sender_id.eq.${userId2},receiver_id.eq.${userId2}`); // Check both ways
 
   if (error) throw error;
   return (count ?? 0) > 0;
+};
+
+export const getUserFriendships = async (userId: string): Promise<string[]> => {
+  const { data, error } = await supabase
+    .from('friendships')
+    .select('*')
+    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+    .eq('status', 'accepted');
+
+  if (error) throw error;
+
+  return data.map((friendship) => {
+    if (friendship.sender_id === userId) {
+      return friendship.receiver_id;
+    }
+    return friendship.sender_id;
+  });
 };
 
 // --- Message Services ---
@@ -559,4 +747,9 @@ export const markNotificationAsRead = async (id: string) => {
     .single();
   if (error) throw error;
   return data;
+};
+
+export const deleteNotification = async (id: string) => {
+  const { error } = await supabase.from('notifications').delete().eq('id', id);
+  if (error) throw error;
 };

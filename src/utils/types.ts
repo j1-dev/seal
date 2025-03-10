@@ -18,6 +18,7 @@ type Post = {
   created_at?: string;
   comment_count?: number;
   like_count?: number;
+  liked_by_user?: boolean;
 };
 
 type Like = {
@@ -47,8 +48,8 @@ type CommentLike = {
 
 type Friendship = {
   id?: UUID | null;
-  user_id_1: UUID;
-  user_id_2: UUID;
+  sender_id: UUID;
+  receiver_id: UUID;
   status: 'pending' | 'accepted';
   created_at?: string;
 };
@@ -173,8 +174,8 @@ export type Database = {
       Friendships: {
         Row: {
           id: string;
-          user_id_1: string;
-          user_id_2: string;
+          sender_id: string;
+          receiver_id: string;
           status: 'pending' | 'accepted';
           created_at: string;
         };

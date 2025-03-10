@@ -69,11 +69,12 @@ export default function PostCard({ post }: { post: Post }) {
 
       // Check if current user has liked the post
       const likedPosts = getLikedPosts(currentUser.id);
-      setLiked(likedPosts.includes(post.id));
+      console.log(post);
+      setLiked(post.liked_by_user ?? likedPosts.includes(post.id));
     };
 
     fetchData();
-  }, [post.id, post.user_id, currentUser]);
+  }, [post.id, post.user_id, currentUser, post]);
 
   // Handle like/unlike logic
   const handleLike = async () => {
@@ -123,13 +124,7 @@ export default function PostCard({ post }: { post: Post }) {
           </DropdownMenu>
         </div>
 
-        {/* Post content */}
-        <Link
-          href={`/p/${post?.id}`}
-          passHref
-          scroll={false}
-          shallow={true}
-          prefetch={true}>
+        <div>
           {/* Author details */}
           <Link href={`/u/${author?.id}`}>
             <Image
@@ -148,19 +143,26 @@ export default function PostCard({ post }: { post: Post }) {
             <Dot className="inline-flex" />
             <p className="inline-flex text-xs">{time}</p>
           </Link>
-
           {/* Post content */}
-          <p className="text-xl pt-3 pb-2">{post.content}</p>
-          {post.media && (
-            <Image
-              src={post.media}
-              alt="post image"
-              width={500}
-              height={500}
-              className="rounded-lg"
-            />
-          )}
-        </Link>
+          <Link
+            href={`/p/${post?.id}`}
+            passHref
+            scroll={false}
+            shallow={true}
+            prefetch={true}>
+            {/* Post content */}
+            <p className="text-xl pt-3 pb-2">{post.content}</p>
+            {post.media && (
+              <Image
+                src={post.media}
+                alt="post image"
+                width={500}
+                height={500}
+                className="rounded-lg"
+              />
+            )}
+          </Link>
+        </div>
 
         {/* Interaction buttons */}
         <div className="my-2 flex items-center justify-start pt-2 gap-4">

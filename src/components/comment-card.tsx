@@ -126,12 +126,7 @@ export default function CommentCard({ comment }: { comment: Comment }) {
       </div>
 
       {/* Comment content */}
-      <Link
-        href={`/c/${comment.id}`}
-        passHref
-        scroll={false}
-        shallow={true}
-        prefetch={true}>
+      <div>
         {/* Author details */}
         <Link href={`/u/${author?.id}`}>
           <Image
@@ -150,10 +145,16 @@ export default function CommentCard({ comment }: { comment: Comment }) {
           <Dot className="inline-flex" />
           <p className="inline-flex text-xs">{time}</p>
         </Link>
-
-        {/* Comment text */}
-        <p className="text-xl pt-3 pb-2">{comment.content}</p>
-      </Link>
+        <Link
+          href={`/c/${comment.id}`}
+          passHref
+          scroll={false}
+          shallow={true}
+          prefetch={true}>
+          {/* Comment text */}
+          <p className="text-xl pt-3 pb-2">{comment.content}</p>
+        </Link>
+      </div>
 
       {/* Interaction buttons */}
       <div className="my-2 flex items-center justify-start pt-2 gap-4">
