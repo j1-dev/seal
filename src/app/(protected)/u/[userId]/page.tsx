@@ -65,7 +65,10 @@ export default function UserPage() {
       if (!userId) return;
 
       try {
-        const data = await getPostsByUserId(userId as string);
+        const data = await getPostsByUserId(
+          userId as string,
+          currentUser?.id ?? ''
+        );
         setPosts(data);
         setLoadingPosts(false);
       } catch (error) {

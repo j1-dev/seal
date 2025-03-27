@@ -382,7 +382,7 @@ export const getPost = async (postId: string, userId: string) => {
   };
 };
 
-export const getPostsByUserId = async (userId: string) => {
+export const getPostsByUserId = async (userId: string, currentUserId: string) => {
   const { data, error } = await supabase
     .from('posts')
     .select('*,comments(count),likes(count)')
@@ -397,7 +397,7 @@ export const getPostsByUserId = async (userId: string) => {
   const { data: likesData, error: likesError } = await supabase
     .from('likes')
     .select('post_id')
-    .eq('user_id', userId)
+    .eq('user_id', currentUserId)
     .in('post_id', postIds);
 
   if (likesError) throw likesError;
