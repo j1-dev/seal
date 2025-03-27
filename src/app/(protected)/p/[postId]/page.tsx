@@ -6,11 +6,9 @@ import Image from 'next/image';
 import { FaHeart, FaRegComment, FaRegHeart } from 'react-icons/fa6';
 import { LuShare } from 'react-icons/lu';
 import { Dot } from 'lucide-react';
-
 import {
   createComment,
-  getLikeCount,
-  getPostById,
+  getPost,
   getUserById,
   likePost,
   unlikePost,
@@ -56,23 +54,21 @@ export default function PostPage() {
 
   // Fetch post data and set initial state
   useEffect(() => {
-    if (!postId) return;
+    if (!postId || !currentUser) return;
 
     const fetchData = async () => {
-      const postData = await getPostById(postId as string);
+      const postData = await getPost(
+        (postId as string) ?? '',
+        currentUser?.id ?? ''
+      );
       setPost(postData);
       setTime(relativeTime(postData?.created_at || ''));
-
+      setLikeCount(postData.like_count);
+      setLiked(postData.liked_by_user);
+      console.log(postData);
       // Fetch author details
       const authorData = await getUserById(postData.user_id);
       setAuthor(authorData);
-
-      // Fetch like count and liked status
-      const count = await getLikeCount(postData.id);
-      setLikeCount(count);
-
-      const likedPosts = getLikedPosts(currentUser?.id || '');
-      setLiked(likedPosts.includes(postData.id));
     };
 
     fetchData();
@@ -197,7 +193,7 @@ export default function PostPage() {
       <Separator />
 
       {/* Comment feed */}
-      <CommentFeed postId={post?.id || ''} />
+      <CommentFeed postId={post?.id ?? ''} userId={currentUser?.id ?? ''} />
     </div>
   );
 }

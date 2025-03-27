@@ -2,17 +2,20 @@
 
 ## IN PROCESS
 
-- Rework liking system so that it doesn't depend on localStorage
+- Clean up `service.ts`
 
 ## TO-DO
 
 - Images on Posts
-- Discover page
-- Clean up `service.ts`
 - Chats
 - Restyle comment thread (more compact)
 - Work on responsiveness
 - Settings page
+
+## 27/03/2025
+
+- Rework liking system so that it doesn't depend on localStorage
+- Discover page v0
 
 ## 10/03/2025
 

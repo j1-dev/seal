@@ -127,41 +127,6 @@ SELECT *
 FROM friendships
 WHERE status = 'accepted';
 
-create or replace function get_feed_posts(user_id uuid)
-returns table (
-  id uuid,
-  user_id uuid,
-  content text,
-  created_at timestamp,
-  comment_count int,
-  like_count int,
-  liked_by_user boolean
-) as $$
-  select
-    p.id,
-    p.user_id,
-    p.content,
-    p.created_at,
-    coalesce(c.comment_count, 0) as comment_count,
-    coalesce(l.like_count, 0) as like_count,
-    exists(select 1 from likes where post_id = p.id and user_id = $1) as liked_by_user
-  from posts p
-  left join (
-      select post_id, count(*) as comment_count
-      from comments
-      group by post_id
-  ) c on c.post_id = p.id
-  left join (
-      select post_id, count(*) as like_count
-      from likes
-      group by post_id
-  ) l on l.post_id = p.id
-  where p.user_id in (
-      select receiver_id
-      from friendships
-      where sender_id = $1 and status = 'accepted'
-  )
-  order by p.created_at desc;
 
 -- Populate sample data
 INSERT INTO Users (username, email, password_hash) VALUES

@@ -5,7 +5,6 @@ import {
   deletePost,
   unlikePost,
   likePost,
-  getLikeCount,
 } from '@/utils/services';
 import { relativeTime } from '@/utils/utils';
 import { HiDotsHorizontal } from 'react-icons/hi';
@@ -62,15 +61,8 @@ export default function PostCard({ post }: { post: Post }) {
       // Fetch author details
       const authorData = await getUserById(post.user_id);
       setAuthor(authorData);
-
-      // Fetch like count
-      const likeCount = await getLikeCount(post.id || '');
-      setLikeCount(likeCount);
-
-      // Check if current user has liked the post
-      const likedPosts = getLikedPosts(currentUser.id);
-      console.log(post);
-      setLiked(post.liked_by_user ?? likedPosts.includes(post.id));
+      setLikeCount(post.like_count || 0);
+      setLiked(post.liked_by_user ?? false);
     };
 
     fetchData();
@@ -97,6 +89,12 @@ export default function PostCard({ post }: { post: Post }) {
     setLiked(!liked); // Optimistically update like status
   };
 
+  const handleDelete = async () => {
+    if (!post.id || !currentUser) return;
+    console.log('deleting', post.id);
+    deletePost(post.id);
+  };
+
   return (
     <div>
       <div key={post.id} className="border-b border-border p-4 my-2 relative">
@@ -112,7 +110,7 @@ export default function PostCard({ post }: { post: Post }) {
               <DropdownMenuItem>Share</DropdownMenuItem>
               <DropdownMenuItem>Report</DropdownMenuItem>
               {currentUser?.id === post.user_id && (
-                <div onClick={() => post.id && deletePost(post.id)}>
+                <div onClick={handleDelete}>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-red-500 cursor-pointer">
                     <FaRegTrashCan />
@@ -169,7 +167,7 @@ export default function PostCard({ post }: { post: Post }) {
           {/* Comment count */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FaRegComment className="cursor-pointer hover:text-primary" />
-            <span>{post?.comment_count}</span>
+            <span>{post?.comment_count || 0}</span>
           </div>
 
           {/* Like button */}

@@ -11,9 +11,11 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 export default function CommendFeed({
   postId,
   commentId,
+  userId,
 }: {
   postId: string;
   commentId?: string;
+  userId: string;
 }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -23,7 +25,7 @@ export default function CommendFeed({
     if (!postId) return;
     console.log('Fetching comments for post:', postId);
     const getComments = async () => {
-      const data = await getCommentsByPostId(postId, commentId);
+      const data = await getCommentsByPostId(postId, commentId, userId);
       setComments(data);
       setLoading(false);
     };

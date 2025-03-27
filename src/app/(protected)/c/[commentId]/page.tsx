@@ -10,9 +10,8 @@ import { Dot } from 'lucide-react';
 import {
   createComment,
   getComment,
-  getCommentLikeCount,
   getCommentThread,
-  getPostById,
+  getPost,
   getUserById,
   likeComment,
   unlikeComment,
@@ -65,11 +64,14 @@ export default function CommentPage() {
   const [disabled, setDisabled] = useState<boolean>(false); // Button state
 
   useEffect(() => {
-    if (!commentId) return;
+    if (!commentId || !currentUser) return;
 
     const fetchData = async () => {
       // Fetch the main comment
-      const mainComment = await getComment(commentId as string);
+      const mainComment = await getComment(
+        commentId as string,
+        currentUser?.id
+      );
       setComment(mainComment);
       setTime(relativeTime(mainComment?.created_at || ''));
 
@@ -77,12 +79,8 @@ export default function CommentPage() {
       const authorData = await getUserById(mainComment.user_id);
       setAuthor(authorData);
 
-      // Fetch like count and liked status
-      const count = await getCommentLikeCount(mainComment.id);
-      setLikeCount(count || 0);
-
-      const likedComments = getLikedComments(currentUser?.id || '');
-      setLiked(likedComments.includes(mainComment.id));
+      setLikeCount(mainComment.like_count);
+      setLiked(mainComment.liked_by_user);
     };
 
     fetchData();
@@ -95,11 +93,12 @@ export default function CommentPage() {
       if (comment?.parent_comment_id !== '') {
         const thread = await getCommentThread(
           comment?.parent_comment_id as string,
-          comment?.post_id as string
+          comment?.post_id as string,
+          currentUser?.id as string
         );
         setThread(thread);
       }
-      const post = await getPostById(comment?.post_id || '');
+      const post = await getPost(comment?.post_id ?? '', currentUser?.id ?? '');
       setPost(post);
     };
     getCommentDependentData();
@@ -168,7 +167,7 @@ export default function CommentPage() {
             <Link href={`/u/${author?.id}`}>
               <Image
                 src={
-                  author?.profile_picture ||
+                  author?.profile_picture ??
                   process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
                 }
                 alt="profile picture"
@@ -223,7 +222,11 @@ export default function CommentPage() {
           <Separator />
 
           {/* Replies */}
-          <CommentFeed postId={comment.post_id} commentId={comment.id || ''} />
+          <CommentFeed
+            postId={comment.post_id}
+            commentId={comment.id ?? ''}
+            userId={currentUser?.id ?? ''}
+          />
         </>
       )}
     </div>

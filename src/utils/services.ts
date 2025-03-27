@@ -2,9 +2,8 @@ import {
   createClient,
   RealtimePostgresDeletePayload,
   RealtimePostgresInsertPayload,
-  RealtimePostgresUpdatePayload,
 } from '@supabase/supabase-js';
-import { Database, Post, User, Comment, Like } from '@/utils/types';
+import { Database, Post, User, Comment, Friendship } from '@/utils/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -48,8 +47,8 @@ export const getUserStatsById = async (id: string) => {
     .maybeSingle();
 
   if (error) throw error;
-  console.log(data);
 
+  // when user has no posts data will be null and stats need to be fetched again
   if (!data) {
     const { data, error } = await supabase
       .from('users')
@@ -194,7 +193,7 @@ export const getAllPosts = async () => {
   return data;
 };
 
-export const getPostsWithCounts = async () => {
+export const getPostsWithCounts = async (userId: string) => {
   const { data, error } = await supabase
     .from('posts')
     .select(
@@ -210,17 +209,32 @@ export const getPostsWithCounts = async () => {
     console.error('Error fetching posts with counts:', error);
     throw error;
   }
+  if (!data) return [];
+
+  // Extract the post IDs to check which ones the user has liked
+  const postIds = (data as Post[]).map((post) => post.id);
+
+  // Query likes for the current user on these posts
+  const { data: likesData, error: likesError } = await supabase
+    .from('likes')
+    .select('post_id')
+    .eq('user_id', userId)
+    .in('post_id', postIds);
+
+  if (likesError) throw likesError;
+
+  const likedPostIds = new Set(likesData.map((like) => like.post_id));
 
   return data.map((post) => ({
     ...post,
     comment_count: post.comments[0].count || 0,
     like_count: post.likes[0].count || 0,
+    liked_by_user: likedPostIds.has(post.id),
   }));
 };
 
 export const getFeedPosts = async (userId: string) => {
   const friendsList = await getUserFriendships(userId);
-  if (friendsList.length === 0) return [];
   friendsList.push(userId); // Include the user's own posts
 
   // Fetch posts from friends with embedded comment and like counts
@@ -267,16 +281,12 @@ export const subscribeToFeedUpdates = async (
   onUpdate: (update: {
     type: string;
     payload:
-      | RealtimePostgresUpdatePayload<Post | Like>
-      | RealtimePostgresInsertPayload<Post | Like>
-      | RealtimePostgresDeletePayload<Post | Like>;
+      | RealtimePostgresInsertPayload<Post>
+      | RealtimePostgresDeletePayload<Post>;
   }) => void
 ): Promise<() => void> => {
   const friendIds = await getUserFriendships(userId);
-  if (friendIds.length === 0) {
-    // No friends means no subscriptions needed.
-    return () => {};
-  }
+  friendIds.push(userId); // Include the user's own posts
 
   const postsChannel = supabase
     .channel('posts_subscription')
@@ -295,18 +305,6 @@ export const subscribeToFeedUpdates = async (
     .on<Post>(
       'postgres_changes',
       {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'posts',
-        filter: `user_id=in.(${friendIds.join(',')})`,
-      },
-      (payload) => {
-        onUpdate({ type: 'POST_UPDATE', payload: payload });
-      }
-    )
-    .on<Post>(
-      'postgres_changes',
-      {
         event: 'DELETE',
         schema: 'public',
         table: 'posts',
@@ -316,43 +314,51 @@ export const subscribeToFeedUpdates = async (
         onUpdate({ type: 'POST_DELETE', payload: payload });
       }
     );
+
   postsChannel.subscribe();
 
-  const likesChannel = supabase
-    .channel('likes_subscription')
-    .on<Like>(
+  return () => postsChannel.unsubscribe();
+};
+
+export const subscribeToAllPostsUpdates = async (
+  onUpdate: (update: {
+    type: string;
+    payload:
+      | RealtimePostgresInsertPayload<Post>
+      | RealtimePostgresDeletePayload<Post>;
+  }) => void
+): Promise<() => void> => {
+  const postsChannel = supabase
+    .channel('posts_subscription')
+    .on<Post>(
       'postgres_changes',
       {
         event: 'INSERT',
         schema: 'public',
-        table: 'likes',
-        filter: `user_id=eq.${userId}`,
+        table: 'posts',
       },
       (payload) => {
-        onUpdate({ type: 'LIKE_INSERT', payload: payload });
+        onUpdate({ type: 'POST_INSERT', payload: payload });
       }
     )
-    .on<Like>(
+    .on<Post>(
       'postgres_changes',
       {
         event: 'DELETE',
         schema: 'public',
-        table: 'likes',
-        filter: `user_id=eq.${userId}`,
+        table: 'posts',
       },
       (payload) => {
-        onUpdate({ type: 'LIKE_DELETE', payload: payload });
+        onUpdate({ type: 'POST_DELETE', payload: payload });
       }
     );
-  likesChannel.subscribe();
 
-  return () => {
-    postsChannel.unsubscribe();
-    likesChannel.unsubscribe();
-  };
+  postsChannel.subscribe();
+
+  return () => postsChannel.unsubscribe();
 };
 
-export const getPostById = async (id: string) => {
+export const getPost = async (postId: string, userId: string) => {
   const { data, error } = await supabase
     .from('posts')
     .select(
@@ -362,13 +368,17 @@ export const getPostById = async (id: string) => {
       likes(count)
     `
     )
-    .eq('id', id)
+    .eq('id', postId)
     .single();
   if (error) throw error;
+
+  const isLiked = await isPostLikedByUser(postId, userId);
+
   return {
     ...data,
-    comment_count: data.comments[0].count,
-    like_count: data.likes[0].count,
+    comment_count: data.comments[0].count ?? 0,
+    like_count: data.likes[0].count ?? 0,
+    liked_by_user: isLiked ?? false,
   };
 };
 
@@ -379,10 +389,26 @@ export const getPostsByUserId = async (userId: string) => {
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
+
+  // Extract the post IDs to check which ones the user has liked
+  const postIds = (data as Post[]).map((post) => post.id);
+
+  // Query likes for the current user on these posts
+  const { data: likesData, error: likesError } = await supabase
+    .from('likes')
+    .select('post_id')
+    .eq('user_id', userId)
+    .in('post_id', postIds);
+
+  if (likesError) throw likesError;
+
+  const likedPostIds = new Set(likesData.map((like) => like.post_id));
+
   return data.map((post) => ({
     ...post,
     comment_count: post.comments[0].count,
     like_count: post.likes[0].count,
+    liked_by_user: likedPostIds.has(post.id),
   }));
 };
 
@@ -439,20 +465,6 @@ export const unlikePost = async (postId: string, userId: string) => {
   return true;
 };
 
-export const getLikeCount = async (postId: string): Promise<number> => {
-  const { count, error } = await supabase
-    .from('likes')
-    .select('*', { count: 'exact', head: true })
-    .eq('post_id', postId);
-
-  if (error) {
-    console.error('Error fetching like count:', error);
-    return 0;
-  }
-
-  return count || 0;
-};
-
 export const isPostLikedByUser = async (
   postId: string,
   userId: string
@@ -479,31 +491,35 @@ export const createComment = async (comment: Comment) => {
   return data;
 };
 
-export const getComment = async (commentId: string) => {
+export const getComment = async (commentId: string, userId: string) => {
   const { data, error } = await supabase
     .from('comments')
     .select(
       `
       *,
-      replies: comments(count)
+      comments(count),
+      comment_likes(count)
       `
     )
     .eq('id', commentId)
     .single();
   if (error) throw error;
 
-  // Access count of replies for the comment
-  const comment_count = data.replies?.[0]?.count ?? 0;
+  const isLiked = await isCommentLikedByUser(commentId, userId);
 
+  // Access count of replies for the comment
   return {
     ...data,
-    comment_count,
+    comment_count: data.comments?.[0]?.count ?? 0,
+    like_count: data.comment_likes?.[0]?.count ?? 0,
+    liked_by_user: isLiked ?? false,
   };
 };
 
 export const getCommentsByPostId = async (
   postId: string,
-  commentId?: string
+  commentId?: string,
+  userId?: string
 ) => {
   // Adjusted query to join the count of likes and replies (child comments)
   let query = supabase
@@ -511,7 +527,7 @@ export const getCommentsByPostId = async (
     .select(
       `
       *,
-      likes:comment-likes(count),
+      likes:comment_likes(count),
       comments:comments(count)
     `
     )
@@ -527,18 +543,33 @@ export const getCommentsByPostId = async (
   const { data, error } = await query;
   if (error) throw error;
 
+  const commentIds = data.map((comment) => comment.id);
+
+  // Query likes for the current user on these comments
+  const { data: likesData, error: likesError } = await supabase
+    .from('comment_likes')
+    .select('comment_id')
+    .eq('user_id', userId)
+    .in('comment_id', commentIds);
+
+  if (likesError) throw likesError;
+
+  const likedCommentIds = new Set(likesData.map((like) => like.comment_id));
+
   // Map each comment to include like_count and comment_count based on the joined data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return data.map((comment: any) => ({
     ...comment,
     like_count: comment.likes?.[0]?.count ?? 0,
     comment_count: comment.comments?.[0]?.count ?? 0,
+    liked_by_user: likedCommentIds.has(comment.id),
   }));
 };
 
 export const getCommentThread = async (
   parentCommentId: string,
-  postId: string
+  postId: string,
+  userId: string
 ) => {
   const comments = [];
   let commentId = parentCommentId;
@@ -546,7 +577,7 @@ export const getCommentThread = async (
   while (commentId) {
     const { data, error } = await supabase
       .from('comments')
-      .select('*')
+      .select('*,comment_likes(count),comments(count)')
       .eq('post_id', postId)
       .eq('id', commentId)
       .single();
@@ -555,7 +586,25 @@ export const getCommentThread = async (
     commentId = data.parent_comment_id;
   }
 
-  return comments.reverse();
+  const commentIds = comments.map((comment) => comment.id);
+
+  // Query likes for the current user on these comments
+  const { data: likesData, error: likesError } = await supabase
+    .from('comment_likes')
+    .select('comment_id')
+    .eq('user_id', userId)
+    .in('comment_id', commentIds);
+
+  if (likesError) throw likesError;
+
+  const likedCommentIds = new Set(likesData.map((like) => like.comment_id));
+
+  return comments.reverse().map((comment) => ({
+    ...comment,
+    like_count: comment.comment_likes[0].count,
+    comment_count: comment.comments[0].count,
+    liked_by_user: likedCommentIds.has(comment.id),
+  }));
 };
 
 export const deleteComment = async (id: string) => {
@@ -577,19 +626,9 @@ export const getPostsCommentsCount = async (postId: string) => {
   return count;
 };
 
-export const getCommentLikeCount = async (id: string) => {
-  const { count, error } = await supabase
-    .from('comment-likes')
-    .select('*', { count: 'exact', head: true })
-    .eq('comment_id', id);
-
-  if (error) throw error;
-  return count;
-};
-
 export const likeComment = async (commentId: string, userId: string) => {
   const { data, error } = await supabase
-    .from('comment-likes')
+    .from('comment_likes')
     .insert({ comment_id: commentId, user_id: userId })
     .select('*')
     .single();
@@ -599,7 +638,7 @@ export const likeComment = async (commentId: string, userId: string) => {
 
 export const unlikeComment = async (commentId: string, userId: string) => {
   const { error } = await supabase
-    .from('comment-likes')
+    .from('comment_likes')
     .delete()
     .eq('comment_id', commentId)
     .eq('user_id', userId);
@@ -607,13 +646,23 @@ export const unlikeComment = async (commentId: string, userId: string) => {
   return true;
 };
 
-// --- Friendship Services ---
-export const createFriendship = async (
-  friendship: Omit<
-    Database['public']['Tables']['Friendships']['Row'],
-    'id' | 'created_at'
-  >
+export const isCommentLikedByUser = async (
+  commentId: string,
+  userId: string
 ) => {
+  const { count, error } = await supabase
+    .from('comment_likes')
+    .select('*', { count: 'exact', head: true })
+    .eq('comment_id', commentId)
+    .eq('user_id', userId);
+
+  if (error) throw error;
+
+  return (count ?? 0) > 0;
+};
+
+// --- Friendship Services ---
+export const createFriendship = async (friendship: Friendship) => {
   const { data, error } = await supabase
     .from('friendships')
     .insert(friendship)

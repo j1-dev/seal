@@ -37,6 +37,7 @@ type Comment = {
   created_at?: string;
   comment_count?: number;
   like_count?: number;
+  liked_by_user?: boolean;
 };
 
 type CommentLike = {

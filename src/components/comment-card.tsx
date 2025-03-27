@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { Comment, User } from '@/utils/types';
 import {
   deleteComment,
-  getCommentLikeCount,
   getUserById,
   likeComment,
   unlikeComment,
@@ -66,18 +65,12 @@ export default function CommentCard({ comment }: { comment: Comment }) {
       // Fetch author details
       const authorData = await getUserById(comment.user_id);
       setAuthor(authorData);
-
-      // Fetch like count
-      const likeCount = await getCommentLikeCount(comment.id || '');
-      setLikeCount(likeCount || 0);
-
-      // Check if current user has liked the comment
-      const likedComments = getLikedComments(currentUser.id);
-      setLiked(likedComments.includes(comment.id));
+      setLikeCount(comment.like_count ?? 0);
+      setLiked(comment.liked_by_user ?? false);
     };
 
     fetchData();
-  }, [comment.id, comment.user_id, currentUser]);
+  }, [comment, currentUser]);
 
   const handleLike = async () => {
     if (!comment.id || !currentUser) return;
@@ -161,7 +154,7 @@ export default function CommentCard({ comment }: { comment: Comment }) {
         {/* Reply count */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FaRegComment className="cursor-pointer hover:text-primary" />
-          <span>{comment?.comment_count}</span>
+          <span>{comment?.comment_count || 0}</span>
         </div>
 
         {/* Like button */}
