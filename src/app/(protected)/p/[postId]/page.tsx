@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { FaHeart, FaRegComment, FaRegHeart } from 'react-icons/fa6';
 import { LuShare } from 'react-icons/lu';
-import { Dot } from 'lucide-react';
 import {
   createComment,
   getPost,
@@ -18,7 +17,7 @@ import { relativeTime } from '@/utils/utils';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import CommentFeed from '@/components/comment-feed';
+import CommentFeed from '@/components/feeds/comment-feed';
 import TopBar from '@/components/tob-bar';
 import { useUser } from '@/utils/context/auth';
 import Link from 'next/link';
@@ -120,27 +119,28 @@ export default function PostPage() {
       <Separator />
       <div className="mx-4 my-2">
         {/* Author information */}
-        <Link href={`/u/${author?.id}`}>
+        <Link
+          href={`/u/${author?.id}`}
+          className="grid grid-rows-2 grid-cols-7">
           <Image
             src={
               author?.profile_picture ||
               process.env.NEXT_PUBLIC_DEFAULT_PROFILE_PIC!
             }
             alt="profile picture"
-            width={48}
-            height={48}
-            className="rounded-full inline-flex border border-border"
+            width={64}
+            height={64}
+            className="rounded-full inline-flex border border-border row-span-2 col-span-1"
           />
-          <p className="inline-flex pl-4 font-semibold hover:underline">
+          <span className="inline-block text-xl  font-semibold hover:underline col-span-6 pt-[10px] pl-2">
             {author?.username}
-          </p>
-          <Dot className="inline-flex" />
-          <p className="inline-flex text-xs">{time}</p>
+          </span>
+          <span className="text-xs col-span-6 pl-2">{time}</span>
         </Link>
       </div>
 
       {/* Post content */}
-      <p className="text-xl pt-3 pb-2 mx-4 my-2">{post?.content}</p>
+      <p className="text-xl mx-4 my-2">{post?.content}</p>
       {post?.media && (
         <Image
           src={post.media}

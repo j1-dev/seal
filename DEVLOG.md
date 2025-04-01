@@ -3,14 +3,17 @@
 ## IN PROCESS
 
 - Clean up `service.ts`
+- Rework frontend and change font
+- Organize `components` directory
+- Limit number of characters to 500 and add a backwards counter to sendbox component
 
 ## TO-DO
 
 - Images on Posts
 - Chats
-- Restyle comment thread (more compact)
-- Work on responsiveness
 - Settings page
+- Notifications v1
+-
 
 ## 27/03/2025
 
@@ -24,8 +27,6 @@
 - Notifications v0
 - user_id_1 -> sender_id, user_id_2 -> receiver_id
 - Realtime feed that shows friends posts
-
-
 
 ## < 19/02/2025
 

@@ -73,7 +73,7 @@ export const getUserStatsById = async (id: string) => {
     return {
       user: user,
       postCount: 0,
-      friendCount: friendCount || 0,
+      friendCount: friendCount ?? 0,
       likeCount: 0,
     };
   }
@@ -90,9 +90,9 @@ export const getUserStatsById = async (id: string) => {
 
   return {
     user: user,
-    postCount: postCount || 0,
-    friendCount: friendCount || 0,
-    likeCount: likeCount || 0,
+    postCount: postCount ?? 0,
+    friendCount: friendCount ?? 0,
+    likeCount: likeCount ?? 0,
   };
 };
 
@@ -227,9 +227,9 @@ export const getPostsWithCounts = async (userId: string) => {
 
   return data.map((post) => ({
     ...post,
-    comment_count: post.comments[0].count || 0,
-    like_count: post.likes[0].count || 0,
-    liked_by_user: likedPostIds.has(post.id),
+    comment_count: post.comments[0].count ?? 0,
+    like_count: post.likes[0].count ?? 0,
+    liked_by_user: likedPostIds.has(post.id) ?? false,
   }));
 };
 
@@ -270,9 +270,9 @@ export const getFeedPosts = async (userId: string) => {
   // Return posts with the extra field "liked_by_user"
   return data.map((post) => ({
     ...post,
-    comment_count: post.comments?.[0]?.count || 0,
-    like_count: post.likes?.[0]?.count || 0,
-    liked_by_user: likedPostIds.has(post.id),
+    comment_count: post.comments?.[0]?.count ?? 0,
+    like_count: post.likes?.[0]?.count ?? 0,
+    liked_by_user: likedPostIds.has(post.id) ?? false,
   }));
 };
 
@@ -289,7 +289,7 @@ export const subscribeToFeedUpdates = async (
   friendIds.push(userId); // Include the user's own posts
 
   const postsChannel = supabase
-    .channel('posts_subscription')
+    .channel(`posts_feed_${userId}`)
     .on<Post>(
       'postgres_changes',
       {
@@ -406,9 +406,9 @@ export const getPostsByUserId = async (userId: string, currentUserId: string) =>
 
   return data.map((post) => ({
     ...post,
-    comment_count: post.comments[0].count,
-    like_count: post.likes[0].count,
-    liked_by_user: likedPostIds.has(post.id),
+    comment_count: post.comments[0].count ?? 0,
+    like_count: post.likes[0].count ?? 0,
+    liked_by_user: likedPostIds.has(post.id) ?? false,
   }));
 };
 
@@ -562,7 +562,7 @@ export const getCommentsByPostId = async (
     ...comment,
     like_count: comment.likes?.[0]?.count ?? 0,
     comment_count: comment.comments?.[0]?.count ?? 0,
-    liked_by_user: likedCommentIds.has(comment.id),
+    liked_by_user: likedCommentIds.has(comment.id) ?? false,
   }));
 };
 
@@ -601,9 +601,9 @@ export const getCommentThread = async (
 
   return comments.reverse().map((comment) => ({
     ...comment,
-    like_count: comment.comment_likes[0].count,
-    comment_count: comment.comments[0].count,
-    liked_by_user: likedCommentIds.has(comment.id),
+    like_count: comment.comment_likes[0].count ?? 0,
+    comment_count: comment.comments[0].count ?? 0,
+    liked_by_user: likedCommentIds.has(comment.id) ?? false,
   }));
 };
 

@@ -4,10 +4,12 @@ import { useUser } from '@/utils/context/auth';
 import { createPost } from '@/utils/services';
 import { Post } from '@/utils/types';
 import { useState } from 'react';
+import CharCounter from '@/components/char-counter';
 
 export function Sendbox() {
   const [content, setContent] = useState<string>('');
   const [disabled, setDisabled] = useState<boolean>(false);
+  const [length, setLength] = useState<number>(0);
   const { user } = useUser();
 
   const constructPost = async (content: string): Promise<Post> => {
@@ -22,7 +24,10 @@ export function Sendbox() {
 
   const handleSend = async () => {
     setDisabled(true);
-    if (!content.trim()) return; // Prevent sending empty posts
+    if (!content.trim()) {
+      setDisabled(false);
+      return;
+    }
 
     try {
       const post = await constructPost(content);
@@ -34,16 +39,27 @@ export function Sendbox() {
     setDisabled(false);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+    setLength(e.target.value.length);
+  };
+
   return (
-    <div className="grid w-full gap-4 border-b border-border p-4">
+    <div className="grid w-full gap-4 border-b border-border p-3">
       <Textarea
         disabled={disabled}
         placeholder="Type your message here."
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => handleChange(e)}
+        maxLength={235}
+        className="border-0 shadow-none resize-none p-2 h-20 text-lg"
       />
-      <Button disabled={disabled} onClick={handleSend}>
-        {!disabled ? 'Send message' : 'Sending...'}
+      <CharCounter length={length} />
+      <Button
+        className="text-md font-bold h-10"
+        disabled={disabled}
+        onClick={handleSend}>
+        {!disabled ? 'Post' : 'Posting...'}
       </Button>
     </div>
   );

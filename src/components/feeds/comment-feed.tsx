@@ -2,7 +2,7 @@
 'use client';
 import { getCommentsByPostId } from '@/utils/services';
 import { Comment } from '@/utils/types';
-import CommentCard from '@/components/comment-card';
+import CommentCard from '@/components/cards/comment-card';
 import { createClient } from '@/utils/supabase/client';
 import React, { useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
@@ -32,7 +32,7 @@ export default function CommendFeed({
     getComments();
 
     const channel = supabase
-      .channel(`comments-feed-${postId}`)
+      .channel(`comments_feed_${postId}`)
       .on(
         'postgres_changes',
         {

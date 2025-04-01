@@ -97,7 +97,7 @@ export default function PostCard({ post }: { post: Post }) {
 
   return (
     <div>
-      <div key={post.id} className="border-b border-border p-4 my-2 relative">
+      <div key={post.id} className="border-b border-border p-3 my-2 relative">
         {/* Dropdown menu */}
         <div className="absolute right-5 top-6 z-50">
           <DropdownMenu>
@@ -163,7 +163,7 @@ export default function PostCard({ post }: { post: Post }) {
         </div>
 
         {/* Interaction buttons */}
-        <div className="my-2 flex items-center justify-start pt-2 gap-4">
+        <div className="my-2 flex items-center justify-start gap-4">
           {/* Comment count */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FaRegComment className="cursor-pointer hover:text-primary" />

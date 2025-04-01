@@ -21,11 +21,11 @@ import { relativeTime } from '@/utils/utils';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import CommentFeed from '@/components/comment-feed';
+import CommentFeed from '@/components/feeds/comment-feed';
 import TopBar from '@/components/tob-bar';
 import { useUser } from '@/utils/context/auth';
-import CommentCard from '@/components/comment-card';
-import PostCard from '@/components/post-card';
+import CommentCard from '@/components/cards/comment-card';
+import PostCard from '@/components/cards/post-card';
 import Link from 'next/link';
 
 const getLikedComments = (userId: string) =>

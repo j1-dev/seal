@@ -16,7 +16,7 @@ import { Friendship, Post, User } from '@/utils/types';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Separator } from '@/components/ui/separator';
 import TopBar from '@/components/tob-bar';
-import PostCard from '@/components/post-card';
+import PostCard from '@/components/cards/post-card';
 import { useUser } from '@/utils/context/auth';
 import { FaCheck } from 'react-icons/fa6';
 import { RxCross2 } from 'react-icons/rx';
@@ -26,7 +26,6 @@ import { uploadProfilePic } from '@/utils/services';
 export default function UserPage() {
   const { userId } = useParams();
   const { user: currentUser } = useUser(); // Get the current logged-in user's ID
-
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingPosts, setLoadingPosts] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
@@ -78,7 +77,7 @@ export default function UserPage() {
     };
 
     fetchUserPosts();
-  }, [userId]);
+  }, [userId, currentUser]);
 
   // Check if the edit button should be shown
   useEffect(() => {

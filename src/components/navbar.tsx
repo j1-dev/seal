@@ -27,7 +27,7 @@ export function Navbar() {
 
   return (
     <aside className="border-border fixed top-0 z-50 h-full w-40 border-r">
-      <div className="container flex flex-col h-full items-end p-4">
+      <div className="container flex flex-col h-full items-end p-3">
         {/* Logo */}
         <div className="mb-4">
           <Link href="/" className="flex items-center gap-2 w-96 h-24 relative">
