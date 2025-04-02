@@ -23,7 +23,7 @@ export default function Home() {
       </div>
       <Marquee>
         <span className="text-2xl font-black italic">
-          ~ comming soon ~ comming soon ~ comming soon ~ cumming soon ~ comming
+          ~ comming soon ~ comming soon ~ comming soon ~ comming soon ~ comming
           soon ~ comming soon ~ comming soon ~ comming soon ~ comming soon ~
         </span>
       </Marquee>

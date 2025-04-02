@@ -2,18 +2,21 @@
 
 ## IN PROCESS
 
-- Clean up `service.ts`
-- Rework frontend and change font
-- Organize `components` directory
-- Limit number of characters to 500 and add a backwards counter to sendbox component
+- Make a decent landing page
 
 ## TO-DO
 
 - Images on Posts
 - Chats
 - Settings page
-- Notifications v1
--
+- Notifications v
+
+## 03/04/2025
+
+- Clean up `service.ts`
+- Rework frontend and change font
+- Organize `components` directory
+- Limit number of characters to 235 and add a backwards counter to sendbox component
 
 ## 27/03/2025
 
