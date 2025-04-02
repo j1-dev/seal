@@ -57,7 +57,7 @@ export default function CommentCard({ comment }: { comment: Comment }) {
   const [author, setAuthor] = useState<User | null>(null); // Comment author's data
   const [liked, setLiked] = useState<boolean>(false); // Like status
   const [likeCount, setLikeCount] = useState<number>(0); // Like count
-  const [time] = useState<string>(relativeTime(comment?.created_at || '')); // Relative time display
+  const [time] = useState<string>(relativeTime(comment?.created_at ?? '')); // Relative time display
 
   useEffect(() => {
     if (!currentUser) return;
@@ -93,7 +93,7 @@ export default function CommentCard({ comment }: { comment: Comment }) {
   };
 
   return (
-    <div className=" p-4 my-2 relative">
+    <div className="p-3 my-1 relative">
       {/* Dropdown menu */}
       <div className="absolute right-5 top-6 z-50">
         <DropdownMenu>
@@ -118,10 +118,9 @@ export default function CommentCard({ comment }: { comment: Comment }) {
         </DropdownMenu>
       </div>
 
-      {/* Comment content */}
       <div>
         {/* Author details */}
-        <Link href={`/u/${author?.id}`}>
+        <Link href={`/u/${author?.id}`} >
           <Image
             src={
               author?.profile_picture ||
@@ -130,7 +129,7 @@ export default function CommentCard({ comment }: { comment: Comment }) {
             alt="profile picture"
             width={32}
             height={32}
-            className="rounded-full inline-flex border border-border"
+            className="rounded-full inline-flex border-b border-border"
           />
           <h2 className="inline-flex pl-2 font-black hover:underline">
             {author?.username}
@@ -154,7 +153,7 @@ export default function CommentCard({ comment }: { comment: Comment }) {
         {/* Reply count */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FaRegComment className="cursor-pointer hover:text-primary" />
-          <span>{comment?.comment_count || 0}</span>
+          <span>{comment?.comment_count ?? 0}</span>
         </div>
 
         {/* Like button */}
