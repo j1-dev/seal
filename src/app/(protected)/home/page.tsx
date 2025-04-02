@@ -1,23 +1,39 @@
 'use client';
 
+import SendBox from '@/components/send-box';
 import Feed from '@/components/feeds/post-feed';
-import { Sendbox } from '@/components/send-box';
-// import { createClient } from '@/utils/supabase/client';
-// import { useEffect } from 'react';
+import { useUser } from '@/utils/context/auth';
+import { createPost } from '@/utils/services';
+import { Post } from '@/utils/types';
 
 export default function Home() {
-  // const [userData, setUserData] = useState();
-  // const supabase = createClient();
+  const { user } = useUser();
 
-  // useEffect(() => {
-  //   supabase.auth.getUser().then((user) => {
-  //     console.log(user);
-  //   });
-  // });
+  const handleSend = async (
+    content: string,
+    setDisabled: (boolean: boolean) => void
+  ) => {
+    setDisabled(true);
+    if (!content.trim()) {
+      setDisabled(false);
+      return;
+    }
+
+    try {
+      const post: Post = {
+        user_id: user?.id ?? '',
+        content: content,
+      };
+      await createPost(post);
+    } catch (error) {
+      console.error('Failed to send post:', error);
+    }
+    setDisabled(false);
+  };
 
   return (
     <div>
-      <Sendbox />
+      <SendBox onSend={handleSend} />
       <Feed />
     </div>
   );

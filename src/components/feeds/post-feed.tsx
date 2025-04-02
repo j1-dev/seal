@@ -29,6 +29,7 @@ export default function Feed() {
               setPosts((prev) => [update.payload.new as Post, ...prev]);
               break;
             case 'POST_DELETE':
+              console.log("post deleted", update)
               setPosts((prev) =>
                 prev.filter(
                   (post) => post.id !== (update.payload.old as Post).id

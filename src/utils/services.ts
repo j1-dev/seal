@@ -289,7 +289,7 @@ export const subscribeToFeedUpdates = async (
   friendIds.push(userId); // Include the user's own posts
 
   const postsChannel = supabase
-    .channel(`posts_feed_${userId}`)
+    .channel(`${userId}_feed`)
     .on<Post>(
       'postgres_changes',
       {
@@ -308,7 +308,7 @@ export const subscribeToFeedUpdates = async (
         event: 'DELETE',
         schema: 'public',
         table: 'posts',
-        filter: `user_id=in.(${friendIds.join(',')})`,
+        // filter: `user_id=in.(${friendIds.join(',')})`,
       },
       (payload) => {
         onUpdate({ type: 'POST_DELETE', payload: payload });
@@ -329,7 +329,7 @@ export const subscribeToAllPostsUpdates = async (
   }) => void
 ): Promise<() => void> => {
   const postsChannel = supabase
-    .channel('posts_subscription')
+    .channel('discovery_feed')
     .on<Post>(
       'postgres_changes',
       {
@@ -382,7 +382,10 @@ export const getPost = async (postId: string, userId: string) => {
   };
 };
 
-export const getPostsByUserId = async (userId: string, currentUserId: string) => {
+export const getPostsByUserId = async (
+  userId: string,
+  currentUserId: string
+) => {
   const { data, error } = await supabase
     .from('posts')
     .select('*,comments(count),likes(count)')

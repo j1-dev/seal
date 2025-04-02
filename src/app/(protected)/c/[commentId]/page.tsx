@@ -23,7 +23,7 @@ import { useUser } from '@/utils/context/auth';
 import CommentCard from '@/components/cards/comment-card';
 import PostCard from '@/components/cards/post-card';
 import Link from 'next/link';
-import CommentBox from '@/components/comment-box';
+import SendBox from '@/components/send-box';
 
 const getLikedComments = (userId: string) =>
   JSON.parse(localStorage.getItem(`likedComments_${userId}`) || '[]');
@@ -205,7 +205,7 @@ export default function CommentPage() {
           <Separator />
 
           {/* Reply input */}
-          <CommentBox onSend={handleSendReply} />
+          <SendBox onSend={handleSendReply} />
           <Separator />
 
           {/* Replies */}

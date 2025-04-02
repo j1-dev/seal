@@ -19,7 +19,7 @@ import CommentFeed from '@/components/feeds/comment-feed';
 import TopBar from '@/components/tob-bar';
 import { useUser } from '@/utils/context/auth';
 import Link from 'next/link';
-import CommentBox from '@/components/comment-box';
+import SendBox from '@/components/send-box';
 
 const getLikedPosts = (userId: string) =>
   JSON.parse(localStorage.getItem(`likedPosts_${userId}`) || '[]');
@@ -175,7 +175,7 @@ export default function PostPage() {
       <Separator />
 
       {/* Comment input */}
-      <CommentBox onSend={handleSendComment} />
+      <SendBox onSend={handleSendComment} />
       <Separator />
 
       {/* Comment feed */}
