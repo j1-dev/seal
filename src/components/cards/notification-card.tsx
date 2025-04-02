@@ -1,6 +1,6 @@
 import React from 'react';
 import { Notification } from '@/utils/types';
-import FriendNotification from './friend-notification';
+import FriendNotification from '@/components/friend-notification';
 
 export default function NotificationCard({
   notification,
