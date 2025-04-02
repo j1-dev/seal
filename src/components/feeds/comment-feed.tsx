@@ -39,7 +39,6 @@ export default function CommendFeed({
           event: 'DELETE',
           schema: 'public',
           table: 'comments',
-          // filter: `post_id=eq.${id}`,
         },
         (payload) => {
           console.log('Comment deleted:', payload.old);

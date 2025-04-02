@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { FaHeart, FaRegComment, FaRegHeart } from 'react-icons/fa6';
 import { LuShare } from 'react-icons/lu';
-
 import {
   createComment,
   getComment,
@@ -18,14 +17,13 @@ import {
 import { Comment, Post, User } from '@/utils/types';
 import { relativeTime } from '@/utils/utils';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import CommentFeed from '@/components/feeds/comment-feed';
 import TopBar from '@/components/tob-bar';
 import { useUser } from '@/utils/context/auth';
 import CommentCard from '@/components/cards/comment-card';
 import PostCard from '@/components/cards/post-card';
 import Link from 'next/link';
+import CommentBox from '@/components/comment-box';
 
 const getLikedComments = (userId: string) =>
   JSON.parse(localStorage.getItem(`likedComments_${userId}`) || '[]');
@@ -59,36 +57,32 @@ export default function CommentPage() {
   const [time, setTime] = useState<string>('');
   const [likeCount, setLikeCount] = useState<number>(0);
   const [liked, setLiked] = useState<boolean>(false);
-  const [content, setContent] = useState<string>(''); // Reply content
-  const [disabled, setDisabled] = useState<boolean>(false); // Button state
 
+  // Fetch comment data and set initial state
   useEffect(() => {
     if (!commentId || !currentUser) return;
 
-    const fetchData = async () => {
-      // Fetch the main comment
+    const fetchComment = async () => {
       const mainComment = await getComment(
         commentId as string,
         currentUser?.id
       );
       setComment(mainComment);
-      setTime(relativeTime(mainComment?.created_at || ''));
-
-      // Fetch author details
-      const authorData = await getUserById(mainComment.user_id);
-      setAuthor(authorData);
-
+      setTime(relativeTime(mainComment?.created_at ?? ''));
       setLikeCount(mainComment.like_count);
       setLiked(mainComment.liked_by_user);
+
+      const authorData = await getUserById(mainComment.user_id);
+      setAuthor(authorData);
     };
 
-    fetchData();
-  }, [commentId]);
+    fetchComment();
+  }, [currentUser, commentId]);
 
+  // Fetch the parent post and the thread of comments in between
   useEffect(() => {
     if (!comment) return;
     const getCommentDependentData = async () => {
-      console.log(comment);
       if (comment?.parent_comment_id !== '') {
         const thread = await getCommentThread(
           comment?.parent_comment_id as string,
@@ -101,9 +95,8 @@ export default function CommentPage() {
       setPost(post);
     };
     getCommentDependentData();
-  }, [comment]);
+  }, [currentUser, comment]);
 
-  // Handle like/unlike functionality
   const handleLike = async () => {
     if (!comment?.id || !currentUser) return;
 
@@ -124,10 +117,15 @@ export default function CommentPage() {
     }
   };
 
-  // Handle adding a reply
-  const handleSendReply = async () => {
+  const handleSendReply = async (
+    content: string,
+    setDisabled: (boolean: boolean) => void
+  ) => {
     setDisabled(true);
-    if (!content.trim() || !currentUser || !comment?.id) return;
+    if (!content.trim() || !currentUser || !comment?.id) {
+      setDisabled(false);
+      return;
+    }
 
     try {
       const reply: Comment = {
@@ -137,7 +135,6 @@ export default function CommentPage() {
         post_id: comment.post_id,
       };
       await createComment(reply);
-      setContent(''); // Clear textarea
     } catch (error) {
       console.error('Failed to send reply:', error);
     }
@@ -208,17 +205,7 @@ export default function CommentPage() {
           <Separator />
 
           {/* Reply input */}
-          <div className="grid w-full gap-4 px-4 border-b border-border pb-4">
-            <Textarea
-              className="border-none shadow-none resize-none outline-none focus:outline-none focus:border-none"
-              placeholder="Write a reply..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
-            <Button disabled={disabled} onClick={handleSendReply}>
-              {!disabled ? 'Reply' : 'Sending...'}
-            </Button>
-          </div>
+          <CommentBox onSend={handleSendReply} />
           <Separator />
 
           {/* Replies */}

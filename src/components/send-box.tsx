@@ -6,7 +6,7 @@ import { Post } from '@/utils/types';
 import { useState } from 'react';
 import CharCounter from '@/components/char-counter';
 
-export function Sendbox() {
+export function Sendbox({}) {
   const [content, setContent] = useState<string>('');
   const [disabled, setDisabled] = useState<boolean>(false);
   const [length, setLength] = useState<number>(0);

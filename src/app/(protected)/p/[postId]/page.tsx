@@ -15,12 +15,11 @@ import {
 import { Comment, Post, User } from '@/utils/types';
 import { relativeTime } from '@/utils/utils';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import CommentFeed from '@/components/feeds/comment-feed';
 import TopBar from '@/components/tob-bar';
 import { useUser } from '@/utils/context/auth';
 import Link from 'next/link';
+import CommentBox from '@/components/comment-box';
 
 const getLikedPosts = (userId: string) =>
   JSON.parse(localStorage.getItem(`likedPosts_${userId}`) || '[]');
@@ -48,32 +47,25 @@ export default function PostPage() {
   const [time, setTime] = useState<string>('');
   const [likeCount, setLikeCount] = useState<number>(0);
   const [liked, setLiked] = useState<boolean>(false);
-  const [content, setContent] = useState<string>('');
-  const [disabled, setDisabled] = useState<boolean>(false);
 
   // Fetch post data and set initial state
   useEffect(() => {
     if (!postId || !currentUser) return;
 
-    const fetchData = async () => {
-      const postData = await getPost(
-        (postId as string) ?? '',
-        currentUser?.id ?? ''
-      );
+    const fetchPost = async () => {
+      const postData = await getPost(postId as string, currentUser?.id);
       setPost(postData);
-      setTime(relativeTime(postData?.created_at || ''));
+      setTime(relativeTime(postData?.created_at ?? ''));
       setLikeCount(postData.like_count);
       setLiked(postData.liked_by_user);
-      console.log(postData);
-      // Fetch author details
+
       const authorData = await getUserById(postData.user_id);
       setAuthor(authorData);
     };
 
-    fetchData();
+    fetchPost();
   }, [postId, currentUser]);
 
-  // Handle like/unlike functionality
   const handleLike = async () => {
     if (!post?.id || !currentUser) return;
 
@@ -94,10 +86,15 @@ export default function PostPage() {
     }
   };
 
-  // Construct and send a comment
-  const handleSendComment = async () => {
+  const handleSendComment = async (
+    content: string,
+    setDisabled: (boolean: boolean) => void
+  ) => {
     setDisabled(true);
-    if (!content.trim() || !currentUser || !post?.id) return;
+    if (!content.trim() || !currentUser || !post?.id) {
+      setDisabled(false);
+      return;
+    }
 
     try {
       const comment: Comment = {
@@ -106,7 +103,6 @@ export default function PostPage() {
         post_id: post.id,
       };
       await createComment(comment);
-      setContent(''); // Clear comment input
     } catch (error) {
       console.error('Failed to send comment:', error);
     }
@@ -179,17 +175,7 @@ export default function PostPage() {
       <Separator />
 
       {/* Comment input */}
-      <div className="grid w-full gap-4 px-4 border-b border-border pb-4">
-        <Textarea
-          className="border-none shadow-none resize-none outline-none focus:outline-none focus:border-none"
-          placeholder="Comment"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
-        <Button disabled={disabled} onClick={handleSendComment}>
-          {!disabled ? 'Send Comment' : 'Sending...'}
-        </Button>
-      </div>
+      <CommentBox onSend={handleSendComment} />
       <Separator />
 
       {/* Comment feed */}
