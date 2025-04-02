@@ -4,7 +4,7 @@ import { useUser } from '@/utils/context/auth';
 import { getUserNotifications } from '@/utils/services';
 import { Notification } from '@/utils/types';
 import { useEffect, useState } from 'react';
-import NotificationCard from '@/components/notification-card';
+import NotificationCard from '@/components/cards/notification-card';
 
 export default function Notifications() {
   const { user } = useUser();
