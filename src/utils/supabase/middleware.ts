@@ -2,8 +2,6 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const updateSession = async (request: NextRequest) => {
-  // This `try/catch` block is only here for the interactive tutorial.
-  // Feel free to remove once you have Supabase connected.
   try {
     // Create an unmodified response
     let response = NextResponse.next({
@@ -40,7 +38,14 @@ export const updateSession = async (request: NextRequest) => {
     const user = await supabase.auth.getUser();
 
     // protected routes
-    const protectedRoutes = ['/home', '/profile', '/chat'];
+    const protectedRoutes = [
+      '/home',
+      '/c',
+      '/p',
+      '/u',
+      '/notifications',
+      '/discover',
+    ];
     const pathname = request.nextUrl.pathname;
     if (
       protectedRoutes.some((route) => pathname.startsWith(route)) &&
