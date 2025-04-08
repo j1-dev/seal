@@ -26,7 +26,6 @@ import {
 import { LuShare } from 'react-icons/lu';
 import { Dot } from 'lucide-react';
 import Link from 'next/link';
-import { useUser } from '@/utils/context/auth';
 
 const getLikedPosts = (userId: string) =>
   JSON.parse(localStorage.getItem(`likedPosts_${userId}`) || '[]');
@@ -46,16 +45,13 @@ const updateLikedPosts = (userId: string, postId: string, isLiked: boolean) => {
   }
 };
 
-export default function PostCard({ post }: { post: Post }) {
-  const { user: currentUser } = useUser(); // Get logged-in user ID
+export default function PostCard({ post, userId }: { post: Post, userId: string }) {
   const [author, setAuthor] = useState<User | null>(null); // Post author's data
   const [liked, setLiked] = useState<boolean>(false); // Like status
   const [likeCount, setLikeCount] = useState<number>(0); // Like count
   const [time] = useState<string>(relativeTime(post?.created_at ?? '')); // Relative time display
 
   useEffect(() => {
-    if (!currentUser) return;
-
     const fetchData = async () => {
       // Fetch author details
       const authorData = await getUserById(post.user_id);
@@ -65,21 +61,21 @@ export default function PostCard({ post }: { post: Post }) {
     };
 
     fetchData();
-  }, [post.id, post.user_id, currentUser, post]);
+  }, [post.id, post.user_id, post]);
 
   const handleLike = async () => {
-    if (!post.id || !currentUser) return;
+    if (!post.id ) return;
 
     if (liked) {
-      const success = await unlikePost(post.id, currentUser.id);
+      const success = await unlikePost(post.id, userId);
       if (success) {
-        updateLikedPosts(currentUser.id, post.id, false);
+        updateLikedPosts(userId, post.id, false);
         setLikeCount((prev) => Math.max(prev - 1, 0));
       }
     } else {
-      const success = await likePost(post.id, currentUser.id);
+      const success = await likePost(post.id, userId);
       if (success) {
-        updateLikedPosts(currentUser.id, post.id, true);
+        updateLikedPosts(userId, post.id, true);
         setLikeCount((prev) => prev + 1);
       }
     }
@@ -88,7 +84,7 @@ export default function PostCard({ post }: { post: Post }) {
   };
 
   const handleDelete = async () => {
-    if (!post.id || !currentUser) return;
+    if (!post.id) return;
     console.log('deleting', post.id);
     deletePost(post.id);
   };
@@ -106,7 +102,7 @@ export default function PostCard({ post }: { post: Post }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem>Share</DropdownMenuItem>
             <DropdownMenuItem>Report</DropdownMenuItem>
-            {currentUser?.id === post.user_id && (
+            {userId === post.user_id && (
               <div onClick={handleDelete}>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-500 cursor-pointer">
@@ -139,11 +135,7 @@ export default function PostCard({ post }: { post: Post }) {
           <p className="inline-flex text-xs">{time}</p>
         </Link>
         {/* Post content */}
-        <Link
-          href={`/p/${post?.id}`}
-          passHref
-          shallow={true}
-          prefetch={true}>
+        <Link href={`/p/${post?.id}`} passHref shallow={true} prefetch={true}>
           {/* Post content */}
           <p className="text-xl pt-3 pb-2">{post.content}</p>
           {post.media && (

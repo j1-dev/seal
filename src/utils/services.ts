@@ -253,10 +253,8 @@ export const getFeedPosts = async (userId: string) => {
   if (error) throw error;
   if (!data) return [];
 
-  // Extract the post IDs to check which ones the user has liked
   const postIds = (data as Post[]).map((post) => post.id);
 
-  // Query likes for the current user on these posts
   const { data: likesData, error: likesError } = await supabase
     .from('likes')
     .select('post_id')
@@ -267,7 +265,6 @@ export const getFeedPosts = async (userId: string) => {
 
   const likedPostIds = new Set(likesData.map((like) => like.post_id));
 
-  // Return posts with the extra field "liked_by_user"
   return data.map((post) => ({
     ...post,
     comment_count: post.comments?.[0]?.count ?? 0,

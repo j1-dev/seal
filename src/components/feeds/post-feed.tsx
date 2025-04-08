@@ -23,13 +23,13 @@ export default function Feed() {
       unsubscribe = await subscribeToFeedUpdates(
         user?.id as string,
         (update) => {
-          console.log(update.type);
+          // console.log(update.type);
           switch (update.type) {
             case 'POST_INSERT':
               setPosts((prev) => [update.payload.new as Post, ...prev]);
               break;
             case 'POST_DELETE':
-              console.log("post deleted", update)
+              console.log('post deleted', update);
               setPosts((prev) =>
                 prev.filter(
                   (post) => post.id !== (update.payload.old as Post).id
@@ -61,7 +61,7 @@ export default function Feed() {
       ) : (
         <div>
           {posts.map((post) => (
-            <PostCard post={post} key={post.id} />
+            <PostCard userId={user?.id ?? ''} post={post} key={post.id} />
           ))}
         </div>
       )}

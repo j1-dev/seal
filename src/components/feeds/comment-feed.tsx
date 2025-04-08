@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client';
 import React, { useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useUser } from '@/utils/context/auth';
 
 export default function CommendFeed({
   postId,
@@ -19,6 +20,7 @@ export default function CommendFeed({
 }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const { user } = useUser();
   const supabase = createClient();
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export default function CommendFeed({
         <div>
           {comments?.map((comment) => (
             <div key={comment.id}>
-              <CommentCard comment={comment} />
+              <CommentCard userId={user?.id ?? ''} comment={comment} />
               <Separator />
             </div>
           ))}

@@ -28,7 +28,6 @@ import {
 } from 'react-icons/fa6';
 import { LuShare } from 'react-icons/lu';
 import { relativeTime } from '@/utils/utils';
-import { useUser } from '@/utils/context/auth';
 
 const getLikedComments = (userId: string) =>
   JSON.parse(localStorage.getItem(`likedComments_${userId}`) || '[]');
@@ -52,15 +51,13 @@ const updateLikedComments = (
   }
 };
 
-export default function CommentCard({ comment }: { comment: Comment }) {
-  const { user: currentUser } = useUser(); // Get logged-in user
+export default function CommentCard({ comment, userId }: { comment: Comment, userId: string }) {
   const [author, setAuthor] = useState<User | null>(null); // Comment author's data
   const [liked, setLiked] = useState<boolean>(false); // Like status
   const [likeCount, setLikeCount] = useState<number>(0); // Like count
   const [time] = useState<string>(relativeTime(comment?.created_at ?? '')); // Relative time display
 
   useEffect(() => {
-    if (!currentUser) return;
     const fetchData = async () => {
       // Fetch author details
       const authorData = await getUserById(comment.user_id);
@@ -70,21 +67,21 @@ export default function CommentCard({ comment }: { comment: Comment }) {
     };
 
     fetchData();
-  }, [comment, currentUser]);
+  }, [comment]);
 
   const handleLike = async () => {
-    if (!comment.id || !currentUser) return;
+    if (!comment.id) return;
 
     if (liked) {
-      const success = await unlikeComment(comment.id, currentUser.id);
+      const success = await unlikeComment(comment.id, userId);
       if (success) {
-        updateLikedComments(currentUser.id, comment.id, false);
+        updateLikedComments(userId, comment.id, false);
         setLikeCount((prev) => Math.max(prev - 1, 0));
       }
     } else {
-      const success = await likeComment(comment.id, currentUser.id);
+      const success = await likeComment(comment.id, userId);
       if (success) {
-        updateLikedComments(currentUser.id, comment.id, true);
+        updateLikedComments(userId, comment.id, true);
         setLikeCount((prev) => prev + 1);
       }
     }
@@ -105,7 +102,7 @@ export default function CommentCard({ comment }: { comment: Comment }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem>Share</DropdownMenuItem>
             <DropdownMenuItem>Report</DropdownMenuItem>
-            {currentUser?.id === comment.user_id && (
+            {userId === comment.user_id && (
               <div onClick={() => comment.id && deleteComment(comment.id)}>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-500 cursor-pointer">
@@ -120,7 +117,7 @@ export default function CommentCard({ comment }: { comment: Comment }) {
 
       <div>
         {/* Author details */}
-        <Link href={`/u/${author?.id}`} >
+        <Link href={`/u/${author?.id}`}>
           <Image
             src={
               author?.profile_picture ||

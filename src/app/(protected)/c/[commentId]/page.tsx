@@ -145,12 +145,12 @@ export default function CommentPage() {
     <div>
       <TopBar title="Comment" />
       <Separator />
-      {post && <PostCard post={post} />}
+      {post && <PostCard userId={currentUser?.id ?? ''} post={post} />}
       {thread && (
         <div>
           {thread.map((comment) => (
             <div key={comment.id}>
-              <CommentCard comment={comment} />
+              <CommentCard userId={currentUser?.id ?? ''} comment={comment} />
               <Separator />
             </div>
           ))}

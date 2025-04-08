@@ -58,7 +58,7 @@ export default function Feed() {
       ) : (
         <div>
           {posts.map((post) => (
-            <PostCard post={post} key={post.id} />
+            <PostCard userId={user?.id ?? ''} post={post} key={post.id} />
           ))}
         </div>
       )}
