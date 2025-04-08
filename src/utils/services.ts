@@ -355,6 +355,46 @@ export const subscribeToAllPostsUpdates = async (
   return () => postsChannel.unsubscribe();
 };
 
+export const subscribeToCommentUpdates = async (
+  postId: string,
+  onUpdate: (update: {
+    type: string;
+    payload:
+      | RealtimePostgresInsertPayload<Comment>
+      | RealtimePostgresDeletePayload<Comment>;
+  }) => void
+) => {
+  const commentsChannel = supabase
+    .channel(`comments_feed_${postId}`)
+    .on<Comment>(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'comments',
+        filter: `post_id=eq.${postId}`,
+      },
+      (payload) => {
+        onUpdate({ type: 'COMMENT_INSERT', payload: payload });
+      }
+    )
+    .on<Comment>(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'comments',
+        filter: `post_id=eq.${postId}`,
+      },
+      (payload) => {
+        onUpdate({ type: 'COMMENT_DELETE', payload: payload });
+      }
+    );
+
+  commentsChannel.subscribe();
+  return () => commentsChannel.unsubscribe();
+};
+
 export const getPost = async (postId: string, userId: string) => {
   const { data, error } = await supabase
     .from('posts')

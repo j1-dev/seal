@@ -1,6 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client';
-import { getCommentsByPostId } from '@/utils/services';
+import {
+  getCommentsByPostId,
+  subscribeToCommentUpdates,
+} from '@/utils/services';
 import { Comment } from '@/utils/types';
 import CommentCard from '@/components/cards/comment-card';
 import { createClient } from '@/utils/supabase/client';
@@ -9,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useUser } from '@/utils/context/auth';
 
-export default function CommendFeed({
+export default function CommentFeed({
   postId,
   commentId,
   userId,
@@ -24,57 +27,36 @@ export default function CommendFeed({
   const supabase = createClient();
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     if (!postId) return;
     console.log('Fetching comments for post:', postId);
-    const getComments = async () => {
+    const loadComments = async () => {
       const data = await getCommentsByPostId(postId, commentId, userId);
       setComments(data);
       setLoading(false);
-    };
-    getComments();
 
-    const channel = supabase
-      .channel(`comments_feed_${postId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'comments',
-        },
-        (payload) => {
-          console.log('Comment deleted:', payload.old);
-          setComments((prevComments) =>
-            (prevComments || []).filter(
-              (comment) => comment.id !== payload.old.id
-            )
-          );
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'comments',
-          filter: `post_id=eq.${postId}`,
-        },
-        (payload) => {
-          console.log('New comment:', payload.new);
-          setComments((prevComments) => [
-            payload.new as Comment,
-            ...(prevComments || []),
-          ]);
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to comments updates: ', postId);
+      unsubscribe = await subscribeToCommentUpdates(postId, (update) => {
+        switch (update.type) {
+          case 'COMMENT_INSERT':
+            setComments((prev) => [update.payload.new as Comment, ...prev]);
+            break;
+          case 'COMMENT_DELETE':
+            setComments((prev) =>
+              prev.filter(
+                (post) => post.id !== (update.payload.old as Comment).id
+              )
+            );
         }
       });
+    };
+
+    if (user?.id) {
+      loadComments();
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (unsubscribe) unsubscribe();
     };
   }, [postId, supabase]);
 

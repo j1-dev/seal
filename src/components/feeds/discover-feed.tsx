@@ -24,7 +24,7 @@ export default function Feed() {
 
       // 2. Subscribe to realtime updates and store the unsubscribe callback
       unsubscribe = await subscribeToAllPostsUpdates((update) => {
-        console.log(update.type);
+        // console.log(update.type);
         switch (update.type) {
           case 'POST_INSERT':
             setPosts((prev) => [update.payload.new as Post, ...prev]);
