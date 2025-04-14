@@ -112,9 +112,9 @@ CREATE INDEX idx_chatroommessages_created_at ON ChatRoomMessages(created_at);
 -- Create Notifications table
 CREATE TABLE Notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES Users(id) ON DELETE CASCADE,
+    receiver_id UUID REFERENCES Users(id) ON DELETE CASCADE,
     type TEXT CHECK (type IN ('friend_request', 'message', 'reaction', 'comment')) NOT NULL,
-    content TEXT NOT NULL,
+    sender_id TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW()
 );

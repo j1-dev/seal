@@ -17,24 +17,24 @@ export default function FriendNotification({
 
   useEffect(() => {
     const getFriendRequester = async () => {
-      getUserById(notification.content).then((user) =>
+      getUserById(notification.sender_id).then((user) =>
         setFriendRequester(user)
       );
     };
     getFriendRequester();
-  }, [notification.content]);
+  }, [notification.sender_id]);
 
   const handleAccept = () => {
     updateFriendshipStatus(
-      notification.content,
-      notification.user_id,
+      notification.sender_id,
+      notification.receiver_id,
       'accepted'
     );
     deleteNotification(notification.id as string);
   };
 
   const handleDeny = () => {
-    deleteFriendship(notification.content, notification.user_id);
+    deleteFriendship(notification.sender_id, notification.receiver_id);
     deleteNotification(notification.id as string);
   };
 

@@ -3,12 +3,12 @@ import {
   RealtimePostgresDeletePayload,
   RealtimePostgresInsertPayload,
 } from '@supabase/supabase-js';
-import { Database, Post, User, Comment, Friendship } from '@/utils/types';
+import { Post, User, Comment, Friendship, Message } from '@/utils/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // --- User Services ---
 export const createUser = async (user: User) => {
@@ -772,12 +772,7 @@ export const getUserFriendships = async (userId: string): Promise<string[]> => {
 };
 
 // --- Message Services ---
-export const sendMessage = async (
-  message: Omit<
-    Database['public']['Tables']['Messages']['Row'],
-    'id' | 'created_at'
-  >
-) => {
+export const sendMessage = async (message: Message) => {
   const { data, error } = await supabase
     .from('messages')
     .insert(message)
@@ -802,12 +797,7 @@ export const getMessagesBetweenUsers = async (
 };
 
 // --- Notification Services ---
-export const createNotification = async (
-  notification: Omit<
-    Database['public']['Tables']['Notifications']['Row'],
-    'id' | 'created_at'
-  >
-) => {
+export const createNotification = async (notification: Notification) => {
   const { data, error } = await supabase
     .from('notifications')
     .insert(notification)
@@ -821,7 +811,7 @@ export const getUserNotifications = async (userId: string) => {
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
-    .eq('user_id', userId)
+    .eq('receiver_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data;
