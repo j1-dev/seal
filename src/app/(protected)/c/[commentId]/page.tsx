@@ -117,13 +117,8 @@ export default function CommentPage() {
     }
   };
 
-  const handleSendReply = async (
-    content: string,
-    setDisabled: (boolean: boolean) => void
-  ) => {
-    setDisabled(true);
+  const handleSendReply = async (content: string) => {
     if (!content.trim() || !currentUser || !comment?.id) {
-      setDisabled(false);
       return;
     }
 
@@ -138,7 +133,6 @@ export default function CommentPage() {
     } catch (error) {
       console.error('Failed to send reply:', error);
     }
-    setDisabled(false);
   };
 
   return (

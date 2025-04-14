@@ -6,7 +6,6 @@ import {
 } from '@/utils/services';
 import { Comment } from '@/utils/types';
 import CommentCard from '@/components/cards/comment-card';
-import { createClient } from '@/utils/supabase/client';
 import React, { useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -24,7 +23,6 @@ export default function CommentFeed({
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { user } = useUser();
-  const supabase = createClient();
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -58,7 +56,7 @@ export default function CommentFeed({
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [postId, supabase]);
+  }, [postId]);
 
   return (
     <div>

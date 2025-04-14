@@ -384,7 +384,7 @@ export const subscribeToCommentUpdates = async (
         event: 'DELETE',
         schema: 'public',
         table: 'comments',
-        filter: `post_id=eq.${postId}`,
+        // filter: `post_id=eq.${postId}`,
       },
       (payload) => {
         onUpdate({ type: 'COMMENT_DELETE', payload: payload });

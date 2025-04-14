@@ -9,13 +9,8 @@ import { Post } from '@/utils/types';
 export default function Home() {
   const { user } = useUser();
 
-  const handleSend = async (
-    content: string,
-    setDisabled: (boolean: boolean) => void
-  ) => {
-    setDisabled(true);
+  const handleSend = async (content: string) => {
     if (!content.trim()) {
-      setDisabled(false);
       return;
     }
 
@@ -28,7 +23,6 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to send post:', error);
     }
-    setDisabled(false);
   };
 
   return (

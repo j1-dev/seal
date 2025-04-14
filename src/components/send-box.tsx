@@ -7,7 +7,7 @@ interface SendBoxProps {
   buttonLabel?: string;
   placeholder?: string;
   height?: number;
-  onSend: (content: string, setDisabled: (disabled: boolean) => void) => void;
+  onSend: (content: string) => void;
 }
 
 export default function SendBox({
@@ -42,8 +42,10 @@ export default function SendBox({
         disabled={disabled}
         onClick={() => {
           if (!content.trim()) return;
-          onSend(content, setDisabled);
+          setDisabled(true)
+          onSend(content);
           setContent(''); // Clear input after sending
+          setDisabled(false)
         }}>
         {buttonLabel ?? 'Send'}
       </Button>

@@ -86,13 +86,8 @@ export default function PostPage() {
     }
   };
 
-  const handleSendComment = async (
-    content: string,
-    setDisabled: (boolean: boolean) => void
-  ) => {
-    setDisabled(true);
+  const handleSendComment = async (content: string) => {
     if (!content.trim() || !currentUser || !post?.id) {
-      setDisabled(false);
       return;
     }
 
@@ -106,7 +101,6 @@ export default function PostPage() {
     } catch (error) {
       console.error('Failed to send comment:', error);
     }
-    setDisabled(false);
   };
 
   return (
