@@ -1,7 +1,10 @@
 'use client';
 
 import { useUser } from '@/utils/context/auth';
-import { getUserNotifications } from '@/utils/services';
+import {
+  getUserNotifications,
+  subscribeToNotifications,
+} from '@/utils/services';
 import { Notification } from '@/utils/types';
 import { useEffect, useState } from 'react';
 import NotificationCard from '@/components/cards/notification-card';
@@ -10,22 +13,51 @@ import { Separator } from '@/components/ui/separator';
 
 export default function Notifications() {
   const { user } = useUser();
-  const [notifications, setNotifications] = useState<Notification[]>();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     const getNotifications = async () => {
-      getUserNotifications(user?.id as string).then((res) => {
-        console.log(res);
-        setNotifications(res);
-      });
+      const data = await getUserNotifications(user?.id as string);
+      setNotifications(data);
+
+      unsubscribe = await subscribeToNotifications(
+        user?.id as string,
+        (update) => {
+          switch (update.type) {
+            case 'NOTIFICATION_INSERT':
+              setNotifications((prev) => [
+                update.payload.new as Notification,
+                ...prev,
+              ]);
+              break;
+            case 'NOTIFICATION_DELETE':
+              setNotifications((prev) =>
+                prev?.filter(
+                  (post) => post.id !== (update.payload.old as Notification).id
+                )
+              );
+              break;
+            default:
+              console.log('type not allowed');
+              break;
+          }
+        }
+      );
     };
-    getNotifications();
+
+    if (user?.id) getNotifications();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [user]);
 
   return (
     <div>
-      <TopBar title='Notifications'/>
-      <Separator/>
+      <TopBar title="Notifications" />
+      <Separator />
       {notifications ? (
         <div>
           {notifications.map((notification) => (

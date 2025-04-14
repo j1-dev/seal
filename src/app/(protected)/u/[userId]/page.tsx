@@ -137,6 +137,7 @@ export default function UserPage() {
 
   const handleDeleteFriendship = async () => {
     deleteFriendship(currentUser!.id, userId as string);
+    deleteFriendship(userId as string, currentUser!.id);
     setFriendship(false);
   };
 

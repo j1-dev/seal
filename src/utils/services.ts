@@ -843,7 +843,7 @@ export const subscribeToNotifications = async (
   }) => void
 ) => {  
   const notificationsChannel = supabase
-    .channel(`notifications_feed_${userId}`)
+    .channel(`${userId}_notifications`)
     .on<Notification>(
       'postgres_changes',
       {
