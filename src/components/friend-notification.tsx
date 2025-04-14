@@ -7,6 +7,10 @@ import {
   updateFriendshipStatus,
 } from '@/utils/services';
 import { Button } from './ui/button';
+import Image from 'next/image';
+import { RxCross2 } from 'react-icons/rx';
+import { FaCheck } from 'react-icons/fa6';
+import Link from 'next/link';
 
 export default function FriendNotification({
   notification,
@@ -40,10 +44,32 @@ export default function FriendNotification({
 
   if (friendRequester) {
     return (
-      <div className="w-full h-20 border-b border-border p-4 my-2 relative">
-        <span>{friendRequester.username} wants to be your friend</span>
-        <Button onClick={handleAccept}>accept</Button>
-        <Button onClick={handleDeny}>deny</Button>
+      <div className="w-full h-24 border-b border-border p-4 my-2 relative">
+        <Image
+          src={friendRequester.profile_picture as string}
+          alt="pp"
+          width={52}
+          height={52}
+          className="rounded-full inline-flex border border-border"
+        />
+        <Link
+          href={`u/${friendRequester.id}`}
+          className="inline-flex pl-3 font-black text-lg hover:underline">
+          {friendRequester.username}{' '}
+        </Link>
+        <span className="text-lg font-normal">
+          {' '}
+          wants to be your friend
+        </span>
+
+        <div className="absolute right-3 top-1/4">
+          <Button className="mx-2" onClick={handleAccept}>
+            <FaCheck />
+          </Button>
+          <Button onClick={handleDeny}>
+            <RxCross2 />
+          </Button>
+        </div>
       </div>
     );
   } else {

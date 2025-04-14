@@ -5,6 +5,8 @@ import { getUserNotifications } from '@/utils/services';
 import { Notification } from '@/utils/types';
 import { useEffect, useState } from 'react';
 import NotificationCard from '@/components/cards/notification-card';
+import TopBar from '@/components/tob-bar';
+import { Separator } from '@/components/ui/separator';
 
 export default function Notifications() {
   const { user } = useUser();
@@ -22,6 +24,8 @@ export default function Notifications() {
 
   return (
     <div>
+      <TopBar title='Notifications'/>
+      <Separator/>
       {notifications ? (
         <div>
           {notifications.map((notification) => (

@@ -19,12 +19,4 @@ export default function NotificationCard({
   } else if (notification.type === 'comment') {
     return <div></div>;
   }
-
-  return (
-    <div
-      key={notification.id}
-      className="border-b border-border p-3 my-2 relative">
-        
-      </div>
-  );
 }

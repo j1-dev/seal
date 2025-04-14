@@ -832,3 +832,64 @@ export const deleteNotification = async (id: string) => {
   const { error } = await supabase.from('notifications').delete().eq('id', id);
   if (error) throw error;
 };
+
+export const subscribeToNotifications = async (
+  userId: string,
+  onUpdate: (update: {
+    type: string;
+    payload:
+      | RealtimePostgresInsertPayload<Notification>
+      | RealtimePostgresDeletePayload<Notification>;
+  }) => void
+) => {  
+  const notificationsChannel = supabase
+    .channel(`notifications_feed_${userId}`)
+    .on<Notification>(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `receiver_id=eq.${userId}`,
+      },
+      (payload) => {
+        onUpdate({ type: 'NOTIFICATION_INSERT', payload: payload });
+      }
+    )
+    .on<Notification>(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'notifications',
+        // filter: `receiver_id=eq.${userId}`,
+      },
+      (payload) => {
+        onUpdate({ type: 'NOTIFICATION_DELETE', payload: payload });
+      }
+    );
+
+  notificationsChannel.subscribe();
+  return () => notificationsChannel.unsubscribe();
+}
+export const getNotificationCount = async (userId: string) => {
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('receiver_id', userId)
+    .eq('is_read', false);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+export const markAllNotificationsAsRead = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('receiver_id', userId)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
