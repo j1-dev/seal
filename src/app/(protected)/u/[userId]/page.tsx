@@ -249,7 +249,11 @@ export default function UserPage() {
               ) : (
                 <div>
                   {posts.map((post: Post) => (
-                    <PostCard post={post} key={post.id} />
+                    <PostCard
+                      userId={user?.id ?? ''}
+                      post={post}
+                      key={post.id}
+                    />
                   ))}
                 </div>
               )}

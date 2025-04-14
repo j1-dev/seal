@@ -3,13 +3,13 @@
 ## IN PROCESS
 
 - Make a decent landing page
+- Notifications v1
 
 ## TO-DO
 
 - Images on Posts
 - Chats
 - Settings page
-- Notifications v1
 
 ## 03/04/2025
 
