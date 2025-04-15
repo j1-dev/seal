@@ -20,10 +20,46 @@ import { cn } from '@/utils/utils';
 import { signOutAction } from '@/app/actions';
 import Logo from '@/components/logo';
 import { useUser } from '@/utils/context/auth';
+import { useEffect, useState } from 'react';
+import {
+  getNotificationCount,
+  subscribeToNotifications,
+} from '@/utils/services';
 
 export function Navbar() {
   const pathname = usePathname();
   const { user } = useUser();
+  const [notificationCount, setNotificationCount] = useState<number>(0);
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    const loadNotificationCount = async () => {
+      const data = await getNotificationCount(user?.id as string);
+      setNotificationCount(data);
+
+      unsubscribe = await subscribeToNotifications(
+        user?.id as string,
+        (update) => {
+          console.log(update.type);
+          switch (update.type) {
+            case 'NOTIFICATION_INSERT':
+              setNotificationCount((prev) => prev + 1);
+              break;
+            default:
+              console.log('type not allowed');
+              break;
+          }
+        }
+      );
+    };
+
+    if (user?.id) {
+      loadNotificationCount();
+    }
+
+    if (unsubscribe) unsubscribe();
+  }, [user, pathname]);
 
   return (
     <aside className="border-border fixed top-0 z-50 h-full w-40 border-r">
@@ -31,7 +67,7 @@ export function Navbar() {
         {/* Logo */}
         <div className="mb-4">
           <Link href="/" className="flex items-center gap-2 w-96 h-24 relative">
-            <Logo size={84} className='absolute right-28 top-1' />
+            <Logo size={84} className="absolute right-28 top-1" />
             <span className="font-black text-5xl absolute right-0 top-7">
               Seal
             </span>
@@ -76,12 +112,17 @@ export function Navbar() {
               'transition-colors hover:text-foreground/80 py-1',
               pathname === '/notifications' ? 'font-black' : 'font-normal'
             )}>
-            <div className="inline-flex items-center gap-2">
+            <div className="inline-flex items-center gap-2 relative">
               <span className="pr-2 pt-2 text-lg">Notifications</span>
               {pathname === '/notifications' ? (
                 <RiNotification3Fill size={32} />
               ) : (
                 <RiNotification3Line size={32} />
+              )}
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white">
+                  {notificationCount}
+                </span>
               )}
             </div>
           </Link>

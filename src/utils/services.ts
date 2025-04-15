@@ -841,7 +841,7 @@ export const subscribeToNotifications = async (
       | RealtimePostgresInsertPayload<Notification>
       | RealtimePostgresDeletePayload<Notification>;
   }) => void
-) => {  
+) => {
   const notificationsChannel = supabase
     .channel(`${userId}_notifications`)
     .on<Notification>(
@@ -871,7 +871,7 @@ export const subscribeToNotifications = async (
 
   notificationsChannel.subscribe();
   return () => notificationsChannel.unsubscribe();
-}
+};
 export const getNotificationCount = async (userId: string) => {
   const { count, error } = await supabase
     .from('notifications')
@@ -881,7 +881,7 @@ export const getNotificationCount = async (userId: string) => {
 
   if (error) throw error;
   return count ?? 0;
-}
+};
 export const markAllNotificationsAsRead = async (userId: string) => {
   const { data, error } = await supabase
     .from('notifications')
@@ -891,5 +891,4 @@ export const markAllNotificationsAsRead = async (userId: string) => {
     .single();
   if (error) throw error;
   return data;
-}
-
+};
