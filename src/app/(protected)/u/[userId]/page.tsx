@@ -35,7 +35,7 @@ export default function UserPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [showEditButton, setShowEditButton] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
-  const [friendship, setFriendship] = useState<boolean>(false);
+  const [friendship, setFriendship] = useState<Friendship | null>(null);
 
   // Fetch user statistics
   useEffect(() => {
@@ -132,13 +132,13 @@ export default function UserPage() {
       status: 'pending',
     };
     createFriendship(newFriendship);
-    setFriendship(true);
+    setFriendship(newFriendship);
   };
 
   const handleDeleteFriendship = async () => {
     deleteFriendship(currentUser!.id, userId as string);
     deleteFriendship(userId as string, currentUser!.id);
-    setFriendship(false);
+    setFriendship(null);
   };
 
   return (
@@ -205,10 +205,16 @@ export default function UserPage() {
                       onClick={() => handleFriendship()}
                     />
                   ) : (
-                    <RxCross2
-                      className="ml-2 transition-colors hover:text-foreground/80 cursor-pointer"
-                      onClick={() => handleDeleteFriendship()}
-                    />
+                    <div>
+                      {friendship.status === 'pending' ? (
+                        <LoadingSpinner className="w-5 h-5 ml-2" />
+                      ) : (
+                        <RxCross2
+                          className="ml-2 transition-colors hover:text-foreground/80 cursor-pointer"
+                          onClick={() => handleDeleteFriendship()}
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
               )}

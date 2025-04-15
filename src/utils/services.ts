@@ -743,15 +743,16 @@ export const deleteFriendship = async (
 export const friendshipExists = async (
   userId1: string,
   userId2: string
-): Promise<boolean> => {
-  const { count, error } = await supabase
+): Promise<Friendship> => {
+  const { data, error } = await supabase
     .from('friendships')
-    .select('*', { count: 'exact', head: true })
+    .select('*')
     .or(`sender_id.eq.${userId1},receiver_id.eq.${userId1}`)
-    .or(`sender_id.eq.${userId2},receiver_id.eq.${userId2}`); // Check both ways
+    .or(`sender_id.eq.${userId2},receiver_id.eq.${userId2}`)
+    .single(); // Check both ways
 
   if (error) throw error;
-  return (count ?? 0) > 0;
+  return data;
 };
 
 export const getUserFriendships = async (userId: string): Promise<string[]> => {

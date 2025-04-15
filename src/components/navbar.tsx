@@ -46,6 +46,9 @@ export function Navbar() {
             case 'NOTIFICATION_INSERT':
               setNotificationCount((prev) => prev + 1);
               break;
+            case 'NOTIFICATION_DELETE':
+              setNotificationCount((prev) => prev - 1);
+              break;
             default:
               console.log('type not allowed');
               break;
