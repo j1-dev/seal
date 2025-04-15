@@ -13,7 +13,7 @@ import { useUser } from '@/utils/context/auth';
 
 export default function CommentFeed({
   postId,
-  commentId,
+  commentId = undefined,
   userId,
 }: {
   postId: string;
@@ -35,15 +35,29 @@ export default function CommentFeed({
       setLoading(false);
 
       unsubscribe = await subscribeToCommentUpdates(postId, (update) => {
+        const comment_new: Comment = update.payload.new as Comment;
+        const comment_old: Comment = update.payload.old as Comment;
         switch (update.type) {
           case 'COMMENT_INSERT':
-            setComments((prev) => [update.payload.new as Comment, ...prev]);
+            if (commentId) {
+              if (
+                comment_new.parent_comment_id === commentId &&
+                comment_new.post_id === postId
+              ) {
+                setComments((prev) => [comment_new, ...prev]);
+              }
+            } else {
+              if (
+                comment_new.post_id === postId &&
+                !comment_new.parent_comment_id
+              ) {
+                setComments((prev) => [comment_new, ...prev]);
+              }
+            }
             break;
           case 'COMMENT_DELETE':
             setComments((prev) =>
-              prev.filter(
-                (post) => post.id !== (update.payload.old as Comment).id
-              )
+              prev.filter((post) => post.id !== comment_old.id)
             );
         }
       });
