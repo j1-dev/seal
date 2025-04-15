@@ -58,7 +58,9 @@ export function Navbar() {
       loadNotificationCount();
     }
 
-    if (unsubscribe) unsubscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [user, pathname]);
 
   return (

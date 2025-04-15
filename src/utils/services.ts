@@ -883,12 +883,9 @@ export const getNotificationCount = async (userId: string) => {
   return count ?? 0;
 };
 export const markAllNotificationsAsRead = async (userId: string) => {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('notifications')
     .update({ is_read: true })
-    .eq('receiver_id', userId)
-    .select('*')
-    .single();
+    .eq('receiver_id', userId);
   if (error) throw error;
-  return data;
 };
