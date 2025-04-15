@@ -3,6 +3,7 @@
 import { useUser } from '@/utils/context/auth';
 import {
   getUserNotifications,
+  markAllNotificationsAsRead,
   subscribeToNotifications,
 } from '@/utils/services';
 import { Notification } from '@/utils/types';
@@ -47,7 +48,10 @@ export default function Notifications() {
       );
     };
 
-    if (user?.id) getNotifications();
+    if (user?.id) {
+      getNotifications();
+      markAllNotificationsAsRead(user.id);
+    }
 
     return () => {
       if (unsubscribe) unsubscribe();
