@@ -1,6 +1,9 @@
 import React from 'react';
 import { Notification } from '@/utils/types';
-import FriendNotification from '@/components/friend-notification';
+import FriendNotification from '@/components/cards/notifications/friend-notification';
+import LikeNotification from '@/components/cards/notifications/like-notification';
+import CommentNotification from '@/components/cards/notifications/comment-notification';
+import CommentLikeNotification from '@/components/cards/notifications/comment-like-notification';
 
 export default function NotificationCard({
   notification,
@@ -8,15 +11,12 @@ export default function NotificationCard({
   notification: Notification;
 }) {
   if (notification.type === 'friend_request') {
-    return (
-      // <div className="w-full h-20 border-b border-border p-4 my-2 relative">
-      //   {notification.user_id}
-      // </div>
-      <FriendNotification notification={notification} />
-    );
+    return <FriendNotification notification={notification} />;
   } else if (notification.type === 'like') {
-    return <div></div>;
+    return <LikeNotification notification={notification} />;
   } else if (notification.type === 'comment') {
-    return <div></div>;
+    return <CommentNotification notification={notification} />;
+  } else if (notification.type === 'comment_like') {
+    return <CommentLikeNotification notification={notification} />;
   }
 }

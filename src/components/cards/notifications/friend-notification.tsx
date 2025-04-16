@@ -6,7 +6,7 @@ import {
   getUserById,
   updateFriendshipStatus,
 } from '@/utils/services';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { RxCross2 } from 'react-icons/rx';
 import { FaCheck } from 'react-icons/fa6';
