@@ -88,12 +88,12 @@ type ChatRoomMessage = {
 type Notification = {
   id?: UUID | null;
   receiver_id: UUID;
-  type: 'friend_request' | 'message' | 'like' | 'comment';
+  type: 'friend_request' | 'message' | 'like' | 'comment_like' | 'comment';
   sender_id: string;
   is_read: boolean;
   created_at: string;
+  ref_id: UUID;
 };
-
 
 export type {
   User,

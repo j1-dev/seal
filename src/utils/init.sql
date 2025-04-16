@@ -112,7 +112,7 @@ CREATE INDEX idx_chatroommessages_created_at ON ChatRoomMessages(created_at);
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     receiver_id UUID REFERENCES Users(id) ON DELETE CASCADE,
-    type TEXT CHECK (type IN ('friend_request', 'message', 'like', 'comment')) NOT NULL,
+    type TEXT CHECK (type IN ('friend_request', 'message', 'like', 'comment_like', 'comment')) NOT NULL,
     sender_id TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW()
@@ -145,8 +145,8 @@ BEGIN
   END IF;
 
   -- Insert a new notification with type 'comment'
-  INSERT INTO Notifications (receiver_id, type, sender_id, created_at)
-  VALUES (receiver, 'comment', NEW.user_id::text, NOW());
+  INSERT INTO Notifications (receiver_id, type, sender_id, created_at, ref_id)
+  VALUES (receiver, 'comment', NEW.user_id::text, NOW(), NEW.comment_id::UUID);
 
   RETURN NEW;
 END;
@@ -183,8 +183,8 @@ BEGIN
   END IF;
   
   -- Insert a new like notification.
-  INSERT INTO Notifications (receiver_id, type, sender_id, created_at)
-  VALUES (postOwner, 'like', NEW.user_id::text, NOW());
+  INSERT INTO Notifications (receiver_id, type, sender_id, created_at, ref_id)
+  VALUES (postOwner, 'like', NEW.user_id::text, NOW(), NEW.post_id::UUID);
   
   RETURN NEW;
 END;
@@ -215,14 +215,14 @@ BEGIN
       SELECT 1 FROM Notifications
       WHERE receiver_id = commentOwner 
         AND sender_id = NEW.user_id::text
-        AND type = 'like'
+        AND type = 'comment_like'
   ) THEN
     RETURN NEW;
   END IF;
   
   -- Insert a new like notification for the comment.
-  INSERT INTO Notifications (receiver_id, type, sender_id, created_at)
-  VALUES (commentOwner, 'like', NEW.user_id::text, NOW());
+  INSERT INTO Notifications (receiver_id, type, sender_id, created_at, ref_id)
+  VALUES (commentOwner, 'comment_like', NEW.user_id::text, NOW(), NEW.comment_id::UUID);
   
   RETURN NEW;
 END;
