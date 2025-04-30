@@ -142,8 +142,8 @@ export default function PostCard({ post, userId }: { post: Post, userId: string 
             <Image
               src={post.media}
               alt="post image"
-              width={500}
-              height={500}
+              width={300}
+              height={300}
               className="rounded-lg"
             />
           )}

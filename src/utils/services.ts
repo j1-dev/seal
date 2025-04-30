@@ -3,6 +3,7 @@ import {
   RealtimePostgresDeletePayload,
   RealtimePostgresInsertPayload,
 } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
 import { Post, User, Comment, Friendship, Message } from '@/utils/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -171,6 +172,58 @@ export const uploadProfilePic = async (file: File, userId: string) => {
   if (updateError) throw updateError;
 
   return userData;
+};
+
+export const uploadPostImage = async (file: File) => {
+  const fileExt = file.name.split('.').pop();
+  const UUID = uuidv4();
+  const fileName = `${UUID}.${fileExt}`;
+
+  // Convert the image to a square by cropping the center
+  const imageBitmap = await createImageBitmap(file);
+  const size = Math.min(imageBitmap.width, imageBitmap.height);
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Canvas 2D context not available');
+  }
+  ctx.drawImage(
+    imageBitmap,
+    (imageBitmap.width - size) / 2,
+    (imageBitmap.height - size) / 2,
+    size,
+    size,
+    0,
+    0,
+    size,
+    size
+  );
+
+  const squareBlob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, file.type)
+  );
+  if (!squareBlob) {
+    throw new Error('Failed to generate square image blob');
+  }
+
+  // Replace the original file with the cropped square version
+  file = new File([squareBlob], fileName, { type: file.type });
+
+  const { error: uploadError } = await supabase.storage
+    .from('post-images')
+    .update(fileName, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) throw uploadError;
+
+  const { data, error } = await supabase.storage
+    .from('post-images')
+    .createSignedUrl(fileName, 60 * 60 * 24 * 1e6); // URL valid for 1e6 days
+
+  if (error) throw new Error('failed to create URL');
+
+  return data;
 };
 
 // --- Post Services ---
