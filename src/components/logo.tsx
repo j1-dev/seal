@@ -1,7 +1,6 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useTheme } from 'next-themes';
 
 interface LogoProps {
   size: number;
@@ -9,15 +8,26 @@ interface LogoProps {
 }
 
 const Logo: React.FC<LogoProps> = ({ size, className }) => {
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  /* 1.  Start with light (SSR-safe). */
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    /* 2.  As soon as we mount, read the real preference. */
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDark(mql.matches);
+
+    /* 3.  Keep listening if the user changes OS setting. */
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
   return (
     <Image
       src={process.env.NEXT_PUBLIC_LOGO!}
       alt="Logo"
       width={size}
       height={size}
-      className={`${className} ${isDarkMode ? 'invert' : ''}`}
+      className={`${className} ${isDark ? 'invert' : ''}`}
       suppressHydrationWarning
     />
   );

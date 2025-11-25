@@ -10,10 +10,10 @@ import {
   RiNotification3Fill,
   RiUser3Line,
   RiUser3Fill,
-  RiSettings5Line,
-  RiSettings5Fill,
-  RiMessage3Line,
-  RiMessage3Fill,
+  // RiSettings5Line,
+  // RiSettings5Fill,
+  // RiMessage3Line,
+  // RiMessage3Fill,
   RiLogoutBoxLine,
 } from 'react-icons/ri';
 import { cn } from '@/utils/utils';
@@ -147,7 +147,7 @@ export function Navbar() {
               )}
             </div>
           </Link>
-          <Link
+          {/* <Link
             href="/messages"
             className={cn(
               'transition-colors hover:text-foreground/80 py-1',
@@ -161,12 +161,12 @@ export function Navbar() {
                 <RiMessage3Line size={32} />
               )}
             </div>
-          </Link>
+          </Link> */}
         </nav>
 
         {/* Bottom Links */}
         <div className="mt-auto flex flex-col items-end gap-4 text-sm">
-          <Link
+          {/* <Link
             href="/settings"
             className={cn(
               'transition-colors hover:text-foreground/80 py-1',
@@ -180,7 +180,7 @@ export function Navbar() {
                 <RiSettings5Line size={32} />
               )}
             </div>
-          </Link>
+          </Link> */}
           <div
             onClick={() => {
               signOutAction();
