@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, Hash, Sparkles } from 'lucide-react';
-import Logo from '@/components/logo';
+import { Logo } from '@/components/logo';
 
 export default function Landing() {
   return (
