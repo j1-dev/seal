@@ -10,11 +10,9 @@ export default function AuthLayout({
     <AuthProvider>
       <div className="border-grid flex flex-1 flex-col">
         <main className="flex flex-1 container-wrapper border-none">
-          <aside className="w-40">
-            <Navbar />
-          </aside>
-          <div className="flex-1">{children}</div>
-          <aside className="w-40 p-3 border-l">
+          <Navbar />
+          <div className="flex-1 pb-20 md:pb-0">{children}</div>
+          <aside className="hidden md:block w-40 p-3 border-l">
             {/* <input
             type="text"
             placeholder="Search users..."
