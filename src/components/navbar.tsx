@@ -18,7 +18,7 @@ import {
 } from 'react-icons/ri';
 import { cn } from '@/utils/utils';
 import { signOutAction } from '@/app/actions';
-import Logo from '@/components/logo';
+import { Logo } from '@/components/logo';
 import { useUser } from '@/utils/context/auth';
 import { useEffect, useState } from 'react';
 import {
