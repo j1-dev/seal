@@ -80,7 +80,7 @@ export function Navbar() {
         </div>
 
         {/* Main Navigation */}
-        <nav className="flex flex-row md:flex-col items-center md:items-end gap-2 md:gap-4 text-sm flex-grow justify-around md:justify-start w-full md:w-auto">
+        <nav className="flex flex-row md:flex-col items-center md:items-end gap-2 md:gap-4 text-sm grow justify-around md:justify-start w-full md:w-auto">
           <Link
             href="/home"
             className={cn(

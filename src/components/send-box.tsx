@@ -44,7 +44,7 @@ export default function SendBox({
   return (
     <div className="grid w-full gap-4 border-b border-border p-3 relative">
       <Textarea
-        className={`border-none shadow-none resize-none outline-none focus:outline-none focus:border-none h-[${
+        className={`border-none shadow-none resize-none outline-hidden focus:outline-hidden focus:border-none h-[${
           height ?? 0
         }]`}
         placeholder={placeholder ?? "What's on your mind...?"}
